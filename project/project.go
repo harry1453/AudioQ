@@ -11,6 +11,7 @@ type Cue struct {
 }
 
 type Settings struct {
+	BufferSize uint
 }
 
 type Project struct {
@@ -49,7 +50,7 @@ func (project *Project) StopPlaying() {
 func (project *Project) monitorCueFinishedChannel() {
 	for !project.isClosed {
 		if project.nextCuePlayable != nil {
-			project.nextCuePlayable.Initialize()
+			project.nextCuePlayable.Initialize(project.Settings.BufferSize)
 		}
 		<-project.cueFinishedChannel
 	}
@@ -88,7 +89,7 @@ func (project *Project) playNext() error {
 		if project.nextCuePlayable.IsPlaying() {
 			return fmt.Errorf("next cue already playing")
 		} else {
-			return project.nextCuePlayable.Play(project.cueFinishedChannel)
+			return project.nextCuePlayable.Play(project.cueFinishedChannel, project.Settings.BufferSize)
 		}
 	} else {
 		return fmt.Errorf("no cue loaded")

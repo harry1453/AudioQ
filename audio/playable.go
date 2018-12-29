@@ -15,23 +15,23 @@ type Playable struct {
 	isInitialized bool
 }
 
-func (playable *Playable) Initialize() error {
+func (playable *Playable) Initialize(bufferSizeMs uint) error {
 	fmt.Println("init")
 	if !playable.isInitialized {
-		err := speaker.Init(playable.format.SampleRate, playable.format.SampleRate.N(time.Second/10))
+		err := speaker.Init(playable.format.SampleRate, playable.format.SampleRate.N(time.Duration(bufferSizeMs)*time.Millisecond))
 		playable.isInitialized = err == nil
 		return err
 	}
 	return nil
 }
 
-func (playable *Playable) Play(cueFinishedChannel chan bool) error {
+func (playable *Playable) Play(cueFinishedChannel chan bool, bufferSizeMs uint) error {
 	if playable.isClosed && !playable.isPlaying {
 		return fmt.Errorf("playable has already been played")
 	}
 
 	if !playable.isInitialized {
-		if err := playable.Initialize(); err != nil {
+		if err := playable.Initialize(bufferSizeMs); err != nil {
 			return err
 		}
 	}

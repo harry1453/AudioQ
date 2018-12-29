@@ -63,6 +63,7 @@ func load() {
 		return
 	}
 	defer file.Close()
+	mProject.Close()
 	if err := json.NewDecoder(file).Decode(&mProject); err != nil {
 		fmt.Println("ERROR: ", err)
 		return
