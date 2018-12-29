@@ -8,31 +8,43 @@ import (
 )
 
 type Playable struct {
-	stream beep.StreamSeekCloser
-	format beep.Format
-	isPlaying bool
-	isClosed bool
+	stream        beep.StreamSeekCloser
+	format        beep.Format
+	isPlaying     bool
+	isClosed      bool
+	isInitialized bool
 }
 
-func (playable *Playable) Play() (chan struct{}, error) {
+func (playable *Playable) Initialize() error {
+	fmt.Println("init")
+	if !playable.isInitialized {
+		err := speaker.Init(playable.format.SampleRate, playable.format.SampleRate.N(time.Second/10))
+		playable.isInitialized = err == nil
+		return err
+	}
+	return nil
+}
+
+func (playable *Playable) Play(cueFinishedChannel chan bool) error {
 	if playable.isClosed && !playable.isPlaying {
-		return nil, fmt.Errorf("playable has already been played")
+		return fmt.Errorf("playable has already been played")
 	}
 
-	playing := make(chan struct{})
-
-	fmt.Println("init")
-	speaker.Init(playable.format.SampleRate, playable.format.SampleRate.N(time.Second/10))
+	if !playable.isInitialized {
+		if err := playable.Initialize(); err != nil {
+			return err
+		}
+	}
 
 	fmt.Println("play")
 	speaker.Play(beep.Seq(playable.stream, beep.Callback(func() {
 		playable.Close()
-		close(playing)
+		cueFinishedChannel <- true
 	})))
 
 	playable.isPlaying = true
 
-	return playing, nil
+	return nil
 }
 
 func (playable *Playable) IsPlaying() bool {

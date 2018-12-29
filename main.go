@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/harry1453/audioQ/audio"
 	"github.com/harry1453/audioQ/project"
 	"os"
 	"strconv"
@@ -77,13 +76,13 @@ func load() {
 
 func play() {
 	fmt.Println("next!")
-	_, err := mProject.PlayNext()
+	err := mProject.PlayNext()
 	fmt.Println("Error: ", err)
 }
 
 func stop() {
 	fmt.Println("stop!")
-	audio.StopAll()
+	mProject.StopPlaying()
 }
 
 func jump() {

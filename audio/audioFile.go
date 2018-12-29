@@ -22,7 +22,7 @@ const (
 
 type AudioFile struct {
 	Encoding AudioEncoding
-	Data string
+	Data     string
 }
 
 func (file *AudioFile) Decode() (Playable, error) {
@@ -53,5 +53,5 @@ func (file *AudioFile) Decode() (Playable, error) {
 	if err != nil {
 		return Playable{}, err
 	}
-	return Playable{stream, format, false, false}, err
+	return Playable{stream, format, false, false, false}, err
 }

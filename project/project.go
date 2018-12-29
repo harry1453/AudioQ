@@ -6,25 +6,53 @@ import (
 )
 
 type Cue struct {
-	Name string
+	Name  string
 	Audio audio.AudioFile
 }
 
 type Settings struct {
-
 }
 
 type Project struct {
-	Name            string
-	Settings        Settings
-	Cues            []Cue
-	currentCue      uint
-	nextCuePlayable *audio.Playable
+	Name               string
+	Settings           Settings
+	Cues               []Cue
+	isClosed           bool
+	currentCue         uint
+	nextCuePlayable    *audio.Playable
+	cueFinishedChannel chan bool
 }
 
 func (project *Project) Init() error {
 	project.currentCue = 0
-	return project.loadNextCue()
+	err := project.loadNextCue()
+	project.cueFinishedChannel = make(chan bool)
+	go project.monitorCueFinishedChannel()
+	return err
+}
+
+func (project *Project) Close() {
+	project.isClosed = true
+	audio.StopAll()
+	if project.nextCuePlayable != nil {
+		project.nextCuePlayable.Close()
+		project.nextCuePlayable = nil
+	}
+	close(project.cueFinishedChannel)
+}
+
+func (project *Project) StopPlaying() {
+	audio.StopAll()
+	project.cueFinishedChannel <- true
+}
+
+func (project *Project) monitorCueFinishedChannel() {
+	for !project.isClosed {
+		if project.nextCuePlayable != nil {
+			project.nextCuePlayable.Initialize()
+		}
+		<-project.cueFinishedChannel
+	}
 }
 
 func (project *Project) AddCue(name string, fileName string) error {
@@ -41,29 +69,29 @@ func (project *Project) AddCue(name string, fileName string) error {
 }
 
 // Begins playing the next song and then attempts to advance the queue
-func (project *Project) PlayNext() (chan struct{}, error) {
-	if channel, err := project.playNext(); err != nil {
-		return nil, err
+func (project *Project) PlayNext() error {
+	if err := project.playNext(); err != nil {
+		return err
 	} else {
 		project.advanceQueue()
 		if err = project.loadNextCue(); err != nil {
-			return nil, err
+			return err
 		} else {
-			return channel, nil
+			return nil
 		}
 	}
 }
 
 // Begins playing the next song in the queue
-func (project *Project) playNext() (chan struct{}, error) {
+func (project *Project) playNext() error {
 	if project.nextCuePlayable != nil {
 		if project.nextCuePlayable.IsPlaying() {
-			return nil, fmt.Errorf("next cue already playing")
+			return fmt.Errorf("next cue already playing")
 		} else {
-			return project.nextCuePlayable.Play()
+			return project.nextCuePlayable.Play(project.cueFinishedChannel)
 		}
 	} else {
-		return nil, fmt.Errorf("no cue loaded")
+		return fmt.Errorf("no cue loaded")
 	}
 }
 
@@ -92,7 +120,7 @@ func (project *Project) isAtEndOfQueue() bool {
 	if len(project.Cues) == 0 {
 		return true
 	}
-	length := uint(len(project.Cues)-1)
+	length := uint(len(project.Cues) - 1)
 	if project.currentCue == length {
 		return true
 	}
