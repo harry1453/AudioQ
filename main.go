@@ -14,6 +14,9 @@ var mProject project.Project
 var input = bufio.NewReader(os.Stdin)
 
 func main() {
+	if err := mProject.Init(); err != nil {
+		panic(err)
+	}
 	for {
 		switch getCommand() {
 		case "play":

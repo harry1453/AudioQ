@@ -26,6 +26,7 @@ type Project struct {
 
 func (project *Project) Init() error {
 	project.currentCue = 0
+	project.isClosed = false
 	err := project.loadNextCue()
 	project.cueFinishedChannel = make(chan bool)
 	go project.monitorCueFinishedChannel()
@@ -131,6 +132,10 @@ func (project *Project) isAtEndOfQueue() bool {
 // Loads the next cue as a playable or sets it to nil
 // If the end of the queue has been reached
 func (project *Project) loadNextCue() error {
+	if len(project.Cues) == 0 {
+		return nil
+	}
+
 	n := project.currentCue
 	if n != 0 {
 		n++
