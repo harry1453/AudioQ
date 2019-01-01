@@ -2,10 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/harry1453/audioQ/project"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 var mProject *project.Project
@@ -22,7 +24,10 @@ func initialize() {
 	router.Handle("/web", http.RedirectHandler("/web/", http.StatusMovedPermanently))
 	router.PathPrefix("/web/").Handler(http.StripPrefix("/web/", http.FileServer(http.Dir("web/"))))
 	router.HandleFunc("/api/getProject", getProject).Methods("GET")
-	router.HandleFunc("/api/playNext", playNext).Methods("GET") // TODO post?
+	router.HandleFunc("/api/addCue", addCue).Methods("POST")
+	router.HandleFunc("/api/renameCue", renameCue).Methods("POST")
+	router.HandleFunc("/api/playNext", playNext).Methods("GET")       // TODO post?
+	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("GET") // TODO post?
 	router.HandleFunc("/api/loadFile", loadFile).Methods("POST")
 	router.HandleFunc("/api/saveFile", saveFile).Methods("GET")
 	log.Print(http.ListenAndServe(":8888", router))
@@ -56,15 +61,55 @@ func getProject(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func addCue(writer http.ResponseWriter, request *http.Request) {
+	if mProject != nil {
+		if err := request.ParseMultipartForm(32 << 20); err != nil {
+			sendError(writer, err)
+			return
+		}
+		file, header, err := request.FormFile("audioFile")
+		if err != nil {
+			sendError(writer, err)
+			return
+		}
+		if err := mProject.AddCue(request.FormValue("cueName"), header.Filename, file); err != nil {
+			sendError(writer, err)
+			return
+		}
+		sendOK(writer)
+	}
+}
+
+func renameCue(writer http.ResponseWriter, request *http.Request) {
+	if checkProject(writer) {
+		cueNumber, err := strconv.Atoi(request.FormValue("cueNumber"))
+		if err != nil {
+			sendError(writer, err)
+			return
+		}
+		if cueNumber < 0 || cueNumber >= len(mProject.Cues) {
+			sendError(writer, fmt.Errorf("cue number out of range: %d", cueNumber))
+			return
+		}
+		mProject.Cues[cueNumber].Name = request.FormValue("cueName")
+		sendOK(writer)
+	}
+}
+
 func playNext(writer http.ResponseWriter, request *http.Request) {
 	if checkProject(writer) {
-		err := mProject.PlayNext()
-		var response CommandResponse
-		if err != nil {
-			response.Error = err.Error()
+		if err := mProject.PlayNext(); err != nil {
+			sendError(writer, err)
+		} else {
+			sendOK(writer)
 		}
-		response.OK = err == nil
-		json.NewEncoder(writer).Encode(response)
+	}
+}
+
+func stopPlaying(writer http.ResponseWriter, request *http.Request) {
+	if checkProject(writer) {
+		mProject.StopPlaying()
+		sendOK(writer)
 	}
 }
 

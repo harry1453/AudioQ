@@ -3,6 +3,7 @@ package project
 import (
 	"fmt"
 	"github.com/harry1453/audioQ/audio"
+	"io"
 )
 
 type Cue struct {
@@ -88,15 +89,20 @@ func (project *Project) monitorCueFinishedChannel() {
 	}
 }
 
-func (project *Project) AddCue(name string, fileName string) error {
-	cueAudio, err := audio.ParseFile(fileName)
+func (project *Project) AddCue(name string, fileName string, file io.Reader) error {
+	cueAudio, err := audio.ParseFile(fileName, file)
 	if err != nil {
 		return err
 	}
 	wasAtEnd := project.isAtEndOfQueue()
 	project.Cues = append(project.Cues, Cue{name, cueAudio})
 	if wasAtEnd {
-		return project.loadNextCue()
+		if err := project.loadNextCue(); err != nil {
+			return err
+		} else {
+			project.cueFinishedChannel <- true
+			return nil
+		}
 	}
 	return nil
 }

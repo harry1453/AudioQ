@@ -8,10 +8,28 @@
 </head>
 <body>
     <div class="content">
+        <h2>Load Project</h2>
         <form enctype="multipart/form-data" action="../api/loadFile" method="post">
             <input type="file" name="audioqProject" />
-            <input type="hidden" name="token" value="{{.}}"/>
-            <input type="submit" value="upload" />
+            <input type="submit" value="Load Project" />
+        </form>
+        <h2>Add Cue</h2>
+        <form enctype="multipart/form-data" action="../api/addCue" method="post">
+            <input type="file" name="audioFile" />
+            <label>
+                Cue Name: <input type="text" name="cueName" />
+            </label>
+            <input type="submit" value="Add" />
+        </form>
+        <h2>Rename Cue</h2>
+        <form enctype="multipart/form-data" action="../api/renameCue" method="post">
+            <label>
+                Cue Number: <input type="text" name="cueNumber" />
+            </label>
+            <label>
+                Cue Name: <input type="text" name="cueName" />
+            </label>
+            <input type="submit" value="Rename" />
         </form>
     </div>
 </body>

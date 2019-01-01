@@ -18,6 +18,9 @@ type Playable struct {
 func (playable *Playable) Initialize(bufferSizeMs uint) error {
 	fmt.Println("init")
 	if !playable.isInitialized {
+		if bufferSizeMs == 0 {
+			bufferSizeMs = 100
+		}
 		err := speaker.Init(playable.format.SampleRate, playable.format.SampleRate.N(time.Duration(bufferSizeMs)*time.Millisecond))
 		playable.isInitialized = err == nil
 		return err

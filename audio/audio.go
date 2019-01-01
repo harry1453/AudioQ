@@ -3,6 +3,7 @@ package audio
 import (
 	"fmt"
 	"github.com/faiface/beep/speaker"
+	"io"
 	"io/ioutil"
 	"strings"
 )
@@ -11,8 +12,8 @@ func StopAll() {
 	speaker.Clear()
 }
 
-func ParseFile(fileName string) (AudioFile, error) {
-	fileContents, err := ioutil.ReadFile(fileName)
+func ParseFile(fileName string, file io.Reader) (AudioFile, error) {
+	fileContents, err := ioutil.ReadAll(file)
 	if err != nil {
 		return AudioFile{}, err
 	}
@@ -31,6 +32,6 @@ func ParseFile(fileName string) (AudioFile, error) {
 
 	return AudioFile{
 		Encoding: encoding,
-		Data: toBase64(fileContents),
+		Data:     toBase64(fileContents),
 	}, nil
 }

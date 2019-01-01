@@ -106,7 +106,12 @@ func addSong() {
 	//fmt.Println("OK! Cue name?")
 	//cueName := getCommand()
 	cueName := "cue"
-	fmt.Println("Error: ", mProject.AddCue(cueName, fileName))
+	file, err := os.Open(fileName)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Error: ", mProject.AddCue(cueName, fileName, file))
 }
 
 func getCommand() string {
