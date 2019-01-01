@@ -10,6 +10,10 @@ type Cue struct {
 	Audio audio.AudioFile
 }
 
+type CueInfo struct {
+	Name string
+}
+
 type Settings struct {
 	BufferSize uint
 }
@@ -24,13 +28,22 @@ type Project struct {
 	cueFinishedChannel chan bool
 }
 
+type ProjectInfo struct {
+	Name     string
+	Settings Settings
+	Cues     []CueInfo
+}
+
 func (project *Project) Init() error {
+	project.Name = "Untitled"
 	project.currentCue = 0
 	project.isClosed = false
-	err := project.loadNextCue()
+	if err := project.loadNextCue(); err != nil {
+		return err
+	}
 	project.cueFinishedChannel = make(chan bool)
 	go project.monitorCueFinishedChannel()
-	return err
+	return nil
 }
 
 func (project *Project) Close() {
@@ -41,6 +54,24 @@ func (project *Project) Close() {
 		project.nextCuePlayable = nil
 	}
 	close(project.cueFinishedChannel)
+}
+
+func (cue *Cue) getInfo() CueInfo {
+	return CueInfo{
+		Name: cue.Name,
+	}
+}
+
+func (project *Project) GetInfo() ProjectInfo {
+	cues := make([]CueInfo, len(project.Cues))
+	for i := 0; i < len(project.Cues); i++ {
+		cues[i] = project.Cues[i].getInfo()
+	}
+	return ProjectInfo{
+		Name:     project.Name,
+		Settings: project.Settings,
+		Cues:     cues,
+	}
 }
 
 func (project *Project) StopPlaying() {

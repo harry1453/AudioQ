@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	_ "github.com/harry1453/audioQ/api"
 	"github.com/harry1453/audioQ/project"
 	"os"
 	"strconv"

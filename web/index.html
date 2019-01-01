@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IOThost</title>
+    <link type="text/css" rel="stylesheet" href="css/main.css" />
+    <script type="text/javascript" rel="script" src="js/index.js"></script>
+</head>
+<body>
+    <div class="content">
+        <form enctype="multipart/form-data" action="../api/loadFile" method="post">
+            <input type="file" name="audioqProject" />
+            <input type="hidden" name="token" value="{{.}}"/>
+            <input type="submit" value="upload" />
+        </form>
+    </div>
+</body>
+</html>
