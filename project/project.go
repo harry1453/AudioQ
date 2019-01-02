@@ -30,9 +30,10 @@ type Project struct {
 }
 
 type ProjectInfo struct {
-	Name     string
-	Settings Settings
-	Cues     []CueInfo
+	Name       string
+	Settings   Settings
+	Cues       []CueInfo
+	CurrentCue uint
 }
 
 func (project *Project) Init() error {
@@ -69,9 +70,10 @@ func (project *Project) GetInfo() ProjectInfo {
 		cues[i] = project.Cues[i].getInfo()
 	}
 	return ProjectInfo{
-		Name:     project.Name,
-		Settings: project.Settings,
-		Cues:     cues,
+		Name:       project.Name,
+		Settings:   project.Settings,
+		Cues:       cues,
+		CurrentCue: project.currentCue,
 	}
 }
 
@@ -147,15 +149,11 @@ func (project *Project) playNext() error {
 	}
 }
 
-func (project *Project) JumpTo(cueNumber uint) error {
-	if cueNumber >= uint(len(project.Cues)) {
+func (project *Project) JumpTo(cueNumber int) error {
+	if cueNumber < 0 || cueNumber >= len(project.Cues) {
 		return fmt.Errorf("cue number outside of range of cues: %d", cueNumber)
 	}
-	if cueNumber == 0 {
-		project.currentCue = 0
-	} else {
-		project.currentCue = cueNumber - 1
-	}
+	project.currentCue = uint(cueNumber)
 	return project.loadNextCue()
 }
 

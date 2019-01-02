@@ -97,7 +97,7 @@ func jump() {
 		fmt.Println("could not parse")
 		return
 	}
-	mProject.JumpTo(uint(n))
+	mProject.JumpTo(n)
 }
 
 func addSong() {

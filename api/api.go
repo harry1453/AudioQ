@@ -27,8 +27,9 @@ func initialize() {
 	router.HandleFunc("/api/addCue", addCue).Methods("POST")
 	router.HandleFunc("/api/removeCue", removeCue).Methods("POST")
 	router.HandleFunc("/api/renameCue", renameCue).Methods("POST")
-	router.HandleFunc("/api/playNext", playNext).Methods("GET")       // TODO post?
-	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("GET") // TODO post?
+	router.HandleFunc("/api/playNext", playNext).Methods("GET")         // TODO post?
+	router.HandleFunc("/api/jumpTo/{cueNumber}", jumpTo).Methods("GET") // TODO post?
+	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("GET")   // TODO post?
 	router.HandleFunc("/api/loadFile", loadFile).Methods("POST")
 	router.HandleFunc("/api/saveFile", saveFile).Methods("GET")
 	log.Print(http.ListenAndServe(":8888", router))
@@ -118,6 +119,20 @@ func playNext(writer http.ResponseWriter, request *http.Request) {
 			sendError(writer, err)
 		} else {
 			sendOK(writer)
+		}
+	}
+}
+
+func jumpTo(writer http.ResponseWriter, request *http.Request) {
+	if checkProject(writer) {
+		if cueNumber, err := strconv.Atoi(mux.Vars(request)["cueNumber"]); err != nil {
+			sendError(writer, err)
+		} else {
+			if err := mProject.JumpTo(cueNumber); err != nil {
+				sendError(writer, err)
+			} else {
+				sendOK(writer)
+			}
 		}
 	}
 }
