@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/harry1453/audioQ/project"
 	"log"
@@ -27,11 +26,12 @@ func initialize() {
 	router.HandleFunc("/api/addCue", addCue).Methods("POST")
 	router.HandleFunc("/api/removeCue", removeCue).Methods("POST")
 	router.HandleFunc("/api/renameCue", renameCue).Methods("POST")
-	router.HandleFunc("/api/playNext", playNext).Methods("GET")         // TODO post?
-	router.HandleFunc("/api/jumpTo/{cueNumber}", jumpTo).Methods("GET") // TODO post?
-	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("GET")   // TODO post?
-	router.HandleFunc("/api/loadFile", loadFile).Methods("POST")
-	router.HandleFunc("/api/saveFile", saveFile).Methods("GET")
+	router.HandleFunc("/api/moveCue/{from}/{to}", moveCue).Methods("GET") // TODO post?
+	router.HandleFunc("/api/playNext", playNext).Methods("GET")           // TODO post?
+	router.HandleFunc("/api/jumpTo/{cueNumber}", jumpTo).Methods("GET")   // TODO post?
+	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("GET")     // TODO post?
+	router.HandleFunc("/api/loadProject", loadProject).Methods("POST")
+	router.HandleFunc("/api/saveProject", saveProject).Methods("GET")
 	log.Print(http.ListenAndServe(":8888", router))
 }
 
@@ -104,12 +104,32 @@ func renameCue(writer http.ResponseWriter, request *http.Request) {
 			sendError(writer, err)
 			return
 		}
-		if cueNumber < 0 || cueNumber >= len(mProject.Cues) {
-			sendError(writer, fmt.Errorf("cue number out of range: %d", cueNumber))
+		if err := mProject.RenameCue(cueNumber, request.FormValue("cueName")); err != nil {
+			sendError(writer, err)
+		} else {
+			sendOK(writer)
+		}
+	}
+}
+
+func moveCue(writer http.ResponseWriter, request *http.Request) {
+	if checkProject(writer) {
+		vars := mux.Vars(request)
+		from, err := strconv.Atoi(vars["from"])
+		if err != nil {
+			sendError(writer, err)
 			return
 		}
-		mProject.Cues[cueNumber].Name = request.FormValue("cueName")
-		sendOK(writer)
+		to, err := strconv.Atoi(vars["to"])
+		if err != nil {
+			sendError(writer, err)
+			return
+		}
+		if err := mProject.MoveCue(from, to); err != nil {
+			sendError(writer, err)
+		} else {
+			sendOK(writer)
+		}
 	}
 }
 
@@ -144,7 +164,7 @@ func stopPlaying(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func loadFile(writer http.ResponseWriter, request *http.Request) {
+func loadProject(writer http.ResponseWriter, request *http.Request) {
 	if mProject != nil {
 		if err := request.ParseMultipartForm(32 << 20); err != nil {
 			sendError(writer, err)
@@ -170,7 +190,7 @@ func loadFile(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func saveFile(writer http.ResponseWriter, request *http.Request) {
+func saveProject(writer http.ResponseWriter, request *http.Request) {
 	if checkProject(writer) {
 		writer.Header().Set("Content-Disposition", "attachment; filename="+mProject.Name+".audioq")
 		writer.Header().Set("Content-Type", request.Header.Get("Content-Type"))

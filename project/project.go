@@ -1,5 +1,7 @@
 package project
 
+// TODO Mutexes to prevent data races on a project, especially for writing
+
 import (
 	"fmt"
 	"github.com/harry1453/audioQ/audio"
@@ -77,6 +79,10 @@ func (project *Project) GetInfo() ProjectInfo {
 	}
 }
 
+func (project *Project) IsCueNumberInRange(cueNumber int) bool {
+	return cueNumber >= 0 && cueNumber < len(project.Cues)
+}
+
 func (project *Project) StopPlaying() {
 	audio.StopAll()
 	project.cueFinishedChannel <- true
@@ -110,16 +116,46 @@ func (project *Project) AddCue(name string, fileName string, file io.Reader) err
 }
 
 func (project *Project) RemoveCue(cueNumber int) error {
-	if cueNumber < 0 || cueNumber >= len(project.Cues) {
+	if !project.IsCueNumberInRange(cueNumber) {
 		return fmt.Errorf("cue number out of range: %d", cueNumber)
 	}
 	if project.isAtEndOfQueue() {
 		project.currentCue--
 	}
 	copy(project.Cues[cueNumber:], project.Cues[cueNumber+1:])
-	project.Cues[len(project.Cues)-1] = Cue{} // or the zero value of T
+	project.Cues[len(project.Cues)-1] = Cue{}
 	project.Cues = project.Cues[:len(project.Cues)-1]
 	return project.loadNextCue()
+}
+
+func (project *Project) RenameCue(cueNumber int, name string) error {
+	if !project.IsCueNumberInRange(cueNumber) {
+		return fmt.Errorf("cue number out of range: %d", cueNumber)
+	}
+	project.Cues[cueNumber].Name = name
+	return nil
+}
+
+func (project *Project) MoveCue(from, to int) error {
+	if !project.IsCueNumberInRange(from) {
+		return fmt.Errorf("cue number out of range: %d", from)
+	}
+	if !project.IsCueNumberInRange(to) {
+		return fmt.Errorf("cue number out of range: %d", from)
+	}
+	// Get Cue to move
+	cue := project.Cues[from]
+
+	// Remove cue
+	copy(project.Cues[from:], project.Cues[from+1:])
+	project.Cues[len(project.Cues)-1] = Cue{}
+	project.Cues = project.Cues[:len(project.Cues)-1]
+
+	// Insert the Cue again
+	project.Cues = append(project.Cues, Cue{} /* use the zero value of the element type */)
+	copy(project.Cues[to+1:], project.Cues[to:])
+	project.Cues[to] = cue
+	return nil
 }
 
 // Begins playing the next song and then attempts to advance the queue
@@ -150,7 +186,7 @@ func (project *Project) playNext() error {
 }
 
 func (project *Project) JumpTo(cueNumber int) error {
-	if cueNumber < 0 || cueNumber >= len(project.Cues) {
+	if !project.IsCueNumberInRange(cueNumber) {
 		return fmt.Errorf("cue number outside of range of cues: %d", cueNumber)
 	}
 	project.currentCue = uint(cueNumber)
