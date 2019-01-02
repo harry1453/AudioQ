@@ -26,10 +26,10 @@ func initialize() {
 	router.HandleFunc("/api/addCue", addCue).Methods("POST")
 	router.HandleFunc("/api/removeCue", removeCue).Methods("POST")
 	router.HandleFunc("/api/renameCue", renameCue).Methods("POST")
-	router.HandleFunc("/api/moveCue/{from}/{to}", moveCue).Methods("GET") // TODO post?
-	router.HandleFunc("/api/playNext", playNext).Methods("GET")           // TODO post?
-	router.HandleFunc("/api/jumpTo/{cueNumber}", jumpTo).Methods("GET")   // TODO post?
-	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("GET")     // TODO post?
+	router.HandleFunc("/api/moveCue/{from}/{to}", moveCue).Methods("GET", "POST") // TODO post only?
+	router.HandleFunc("/api/playNext", playNext).Methods("GET", "POST")           // TODO post only?
+	router.HandleFunc("/api/jumpTo/{cueNumber}", jumpTo).Methods("GET", "POST")   // TODO post only?
+	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("GET", "POST")     // TODO post only?
 	router.HandleFunc("/api/loadProject", loadProject).Methods("POST")
 	router.HandleFunc("/api/saveProject", saveProject).Methods("GET")
 	log.Print(http.ListenAndServe(":8888", router))
@@ -38,6 +38,10 @@ func initialize() {
 type CommandResponse struct {
 	OK    bool
 	Error string
+}
+
+func ProjectRef() *project.Project { // todo remove
+	return mProject
 }
 
 func sendOK(writer http.ResponseWriter) {

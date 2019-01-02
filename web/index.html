@@ -8,36 +8,27 @@
 </head>
 <body>
     <div class="content">
-        <h2>Load Project</h2>
-        <form enctype="multipart/form-data" action="../api/loadProject" method="post">
-            <input type="file" name="audioqProject" />
-            <input type="submit" value="Load Project" />
-        </form>
-        <h2>Add Cue</h2>
-        <form enctype="multipart/form-data" action="../api/addCue" method="post">
-            <input type="file" name="audioFile" />
-            <label>
-                Cue Name: <input type="text" name="cueName" />
-            </label>
-            <input type="submit" value="Add" />
-        </form>
-        <h2>Rename Cue</h2>
-        <form enctype="multipart/form-data" action="../api/renameCue" method="post">
-            <label>
-                Cue Number: <input type="text" name="cueNumber" />
-            </label>
-            <label>
-                Cue Name: <input type="text" name="cueName" />
-            </label>
-            <input type="submit" value="Rename" />
-        </form>
-        <h2>Remove Cue</h2>
-        <form enctype="multipart/form-data" action="../api/removeCue" method="post">
-            <label>
-                Cue Number: <input type="text" name="cueNumber" />
-            </label>
-            <input type="submit" value="Rename" />
-        </form>
+        <div class="leftColumn">
+            <h2 id="projectTitle">Project: Loading...</h2>
+            <button onclick="playNext()">PLAY</button>
+            <button onclick="playNext()">STOP</button>
+            <button onclick="getProject()">REFRESH</button>
+            <table id="cues" class="cues">
+                <tr>
+                    <th>#</th>
+                    <th>Sel</th>
+                    <th>Cue Name</th>
+                    <th>Jump</th>
+                </tr>
+                <tr>
+                    <td colspan="4">Loading...</td>
+                </tr>
+            </table>
+        </div>
+        <div class="rightColumn">
+            <h2>Project Settings</h2>
+            <p id="bufferSize">Buffer Size: Loading...</p>
+        </div>
     </div>
 </body>
 </html>

@@ -4,20 +4,20 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/harry1453/audioQ/api"
 	_ "github.com/harry1453/audioQ/api"
-	"github.com/harry1453/audioQ/project"
 	"os"
 	"strconv"
 )
 
-var mProject project.Project
+var mProject = api.ProjectRef()
 
 var input = bufio.NewReader(os.Stdin)
 
 func main() {
-	if err := mProject.Init(); err != nil {
-		panic(err)
-	}
+	//if err := mProject.Init(); err != nil {
+	//	panic(err)
+	//}
 	for {
 		switch getCommand() {
 		case "play":

@@ -1,7 +1,41 @@
-.content {
+/* Clear floats after the columns */
+.content:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.leftColumn {
+    float: left;
+    width: 60%;
+}
+
+.rightColumn {
+    float: left;
+    width: 39%; /* CSS is stupid.*/
+}
+
+.cues {
+    border-collapse: collapse;
+    border: 2px solid black;
+}
+
+.cues th {
+    border: 2px solid black;
+}
+
+.cues td {
+    border: 1px solid black;
+}
+
+div {
+    border: 1px solid black; /* DEBUG */
+}
+
+/*.content {
     align-content: center;
     text-align: center;
-}
+}*/
 
 .error {
     color: red;

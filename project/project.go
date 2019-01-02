@@ -221,14 +221,9 @@ func (project *Project) loadNextCue() error {
 	}
 
 	n := project.currentCue
-	if n != 0 {
-		n++
+	if n >= uint(len(project.Cues)) {
+		n = 0
 	}
-
-	if n == uint(len(project.Cues)) {
-		n -= 1
-	}
-
 	if playable, err := project.Cues[n].Audio.Decode(); err != nil {
 		return err
 	} else {
