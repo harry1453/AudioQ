@@ -25,6 +25,7 @@ func initialize() {
 	router.PathPrefix("/web/").Handler(http.StripPrefix("/web/", http.FileServer(http.Dir("web/"))))
 	router.HandleFunc("/api/getProject", getProject).Methods("GET")
 	router.HandleFunc("/api/addCue", addCue).Methods("POST")
+	router.HandleFunc("/api/removeCue", removeCue).Methods("POST")
 	router.HandleFunc("/api/renameCue", renameCue).Methods("POST")
 	router.HandleFunc("/api/playNext", playNext).Methods("GET")       // TODO post?
 	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("GET") // TODO post?
@@ -77,6 +78,21 @@ func addCue(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 		sendOK(writer)
+	}
+}
+
+func removeCue(writer http.ResponseWriter, request *http.Request) {
+	if mProject != nil {
+		cueNumber, err := strconv.Atoi(request.FormValue("cueNumber"))
+		if err != nil {
+			sendError(writer, err)
+			return
+		}
+		if err := mProject.RemoveCue(cueNumber); err != nil {
+			sendError(writer, err)
+		} else {
+			sendOK(writer)
+		}
 	}
 }
 

@@ -107,6 +107,19 @@ func (project *Project) AddCue(name string, fileName string, file io.Reader) err
 	return nil
 }
 
+func (project *Project) RemoveCue(cueNumber int) error {
+	if cueNumber < 0 || cueNumber >= len(project.Cues) {
+		return fmt.Errorf("cue number out of range: %d", cueNumber)
+	}
+	if project.isAtEndOfQueue() {
+		project.currentCue--
+	}
+	copy(project.Cues[cueNumber:], project.Cues[cueNumber+1:])
+	project.Cues[len(project.Cues)-1] = Cue{} // or the zero value of T
+	project.Cues = project.Cues[:len(project.Cues)-1]
+	return project.loadNextCue()
+}
+
 // Begins playing the next song and then attempts to advance the queue
 func (project *Project) PlayNext() error {
 	if err := project.playNext(); err != nil {
