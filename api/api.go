@@ -26,7 +26,7 @@ func initialize() {
 	router.HandleFunc("/api/getProject", getProject).Methods("GET")
 	router.HandleFunc("/api/addCue", addCue).Methods("POST")
 	router.HandleFunc("/api/removeCue", removeCue).Methods("POST")
-	router.HandleFunc("/api/renameCue", renameCue).Methods("POST")
+	router.HandleFunc("/api/renameCue/{cueNumber}/{cueName}", renameCue).Methods("POST")
 	router.HandleFunc("/api/moveCue/{from}/{to}", moveCue).Methods("GET", "POST") // TODO post only?
 	router.HandleFunc("/api/playNext", playNext).Methods("POST")
 	router.HandleFunc("/api/jumpTo/{cueNumber}", jumpTo).Methods("POST")
@@ -106,12 +106,13 @@ func removeCue(writer http.ResponseWriter, request *http.Request) {
 
 func renameCue(writer http.ResponseWriter, request *http.Request) {
 	if checkProject(writer) {
-		cueNumber, err := strconv.Atoi(request.FormValue("cueNumber"))
+		vars := mux.Vars(request)
+		cueNumber, err := strconv.Atoi(vars["cueNumber"])
 		if err != nil {
 			sendError(writer, err)
 			return
 		}
-		if err := mProject.RenameCue(cueNumber, request.FormValue("cueName")); err != nil {
+		if err := mProject.RenameCue(cueNumber, vars["cueName"]); err != nil {
 			sendError(writer, err)
 		} else {
 			sendOK(writer)

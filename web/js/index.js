@@ -7,11 +7,13 @@ function getProject() {
         document.getElementById("projectNameInput").value = project.Name;
         document.getElementById("bufferSize").value = project.Settings.BufferSize;
 
-        document.getElementById("cues").innerHTML =" <tr><th>#</th><th>Sel</th><th>Cue Name</th><th>Jump</th></tr>";
+        document.getElementById("cues").innerHTML =" <tr><th>#</th><th>Sel</th><th>Cue Name</th><th>Jump</th><td>Rename</td></tr>";
         for (let i = 0; i < project.Cues.length; i++) {
             let cue = project.Cues[i];
             let sel = project.CurrentCue === i ? "Sel" : "";
-            document.getElementById("cues").innerHTML += "<tr><td>"+i+"</td><td>"+sel+"</td><td>"+cue.Name+"</td><td><button onclick='jumpToCue("+i+")'>Jump!</button></td></tr>";
+
+            // TODO HTML escaping
+            document.getElementById("cues").innerHTML += "<tr><td>"+i+"</td><td>"+sel+"</td><td>"+cue.Name+"</td><td><button onclick='jumpToCue("+i+")'>Jump!</button></td><td><button onclick='renameCue("+i+", \""+cue.Name+"\")'>Rename</button></td></tr>";
         }
     });
 }
@@ -79,7 +81,20 @@ function addCueToProject() {
         return http.json();
     }).then(result => {
         if (!result.OK) {
-            logError("UpdateProjectSettings()", result.Error);
+            logError("AddCueToProject()", result.Error);
+        }
+        getProject();
+    });
+}
+
+function renameCue(cueNumber, previousName) {
+    let cueName = prompt("New cue name?", previousName);
+    if (cueName === previousName) return;
+    fetch("../api/renameCue/"+cueNumber+"/"+cueName, {method: "POST"}).then(http => {
+        return http.json();
+    }).then(result => {
+        if (!result.OK) {
+            logError("RenameCue("+cueNumber+", "+cueName+")", result.Error);
         }
         getProject();
     });
