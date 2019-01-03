@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>IOThost</title>
+    <title>AudioQ</title>
     <link type="text/css" rel="stylesheet" href="css/main.css" />
     <script type="text/javascript" rel="script" src="js/index.js"></script>
 </head>
@@ -10,9 +10,9 @@
     <div class="content">
         <div class="leftColumn">
             <h2 id="projectName">Project: Loading...</h2>
-            <button onclick="playNext()">PLAY</button>
-            <button onclick="stopPlaying()">STOP</button>
-            <button onclick="getProject()">REFRESH</button>
+            <button onclick="playNext();">PLAY</button>
+            <button onclick="stopPlaying();">STOP</button>
+            <button onclick="getProject();">REFRESH</button>
             <table id="cues" class="cues">
                 <tr>
                     <th>#</th>
@@ -20,9 +20,10 @@
                     <th>Cue Name</th>
                     <th>Jump</th>
                     <th>Rename</th>
+                    <th>Remove</th>
                 </tr>
                 <tr>
-                    <td colspan="5">Loading...</td>
+                    <td colspan="6">Loading...</td>
                 </tr>
             </table>
         </div>
@@ -32,19 +33,19 @@
             <form id="settingsForm">
                 <label for="bufferSize">Buffer Size: </label><input type="text" value="Loading..." name="BufferSize" id="bufferSize" />
             </form>
-            <button onclick="updateProjectSettings()">Update</button>
+            <button onclick="updateProjectSettings();">Update</button>
             <h2>Add Cue</h2>
             <form id="addCueForm" enctype="multipart/form-data">
                 <input type="file" name="audioFile" />
                 <label for="addCue_cueName">Cue Name: </label><input type="text" id="addCue_cueName" name="cueName" />
             </form>
-            <button onclick="addCueToProject()">Add Cue</button>
+            <button onclick="addCueToProject();">Add Cue</button>
             <h2>Load/Save Project</h2>
             <form id="loadProjectForm" enctype="multipart/form-data">
                 <input type="file" name="audioqProject" />
             </form>
-            <button onclick="loadProject()">Load Project</button>
-            <button onclick="saveProject()">Save Project</button>
+            <button onclick="loadProject();">Load Project</button>
+            <button onclick="saveProject();">Save Project</button>
         </div>
     </div>
 </body>

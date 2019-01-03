@@ -7,13 +7,13 @@ function getProject() {
         document.getElementById("projectNameInput").value = project.Name;
         document.getElementById("bufferSize").value = project.Settings.BufferSize;
 
-        document.getElementById("cues").innerHTML =" <tr><th>#</th><th>Sel</th><th>Cue Name</th><th>Jump</th><th>Rename</th></tr>";
+        document.getElementById("cues").innerHTML =" <tr><th>#</th><th>Sel</th><th>Cue Name</th><th>Jump</th><th>Rename</th><th>Remove</th></tr>";
         for (let i = 0; i < project.Cues.length; i++) {
             let cue = project.Cues[i];
             let sel = project.CurrentCue === i ? "Sel" : "";
 
             // TODO HTML escaping
-            document.getElementById("cues").innerHTML += "<tr><td>"+i+"</td><td>"+sel+"</td><td>"+cue.Name+"</td><td><button onclick='jumpToCue("+i+")'>Jump!</button></td><td><button onclick='renameCue("+i+", \""+cue.Name+"\")'>Rename</button></td></tr>";
+            document.getElementById("cues").innerHTML += "<tr><td>"+i+"</td><td>"+sel+"</td><td>"+cue.Name+"</td><td><button onclick='jumpToCue("+i+");'>Jump!</button></td><td><button onclick='renameCue("+i+", \""+cue.Name+"\");'>Rename</button></td><td><button onclick='removeCueFromProject("+i+");' >Remove</button></td></tr>";
         }
     });
 }
@@ -82,6 +82,18 @@ function addCueToProject() {
     }).then(result => {
         if (!result.OK) {
             logError("AddCueToProject()", result.Error);
+        }
+        getProject();
+    });
+}
+
+function removeCueFromProject(cueNumber) {
+    if (!confirm("Are you sure you want to remove cue "+cueNumber+"?")) return;
+    fetch("../api/removeCue/"+cueNumber, {method: "POST"}).then(http => {
+        return http.json();
+    }).then(result => {
+        if (!result.OK) {
+            logError("RemoveCueFromProject()", result.Error);
         }
         getProject();
     });

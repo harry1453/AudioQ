@@ -25,7 +25,7 @@ func initialize() {
 	router.PathPrefix("/web/").Handler(http.StripPrefix("/web/", http.FileServer(http.Dir("web/"))))
 	router.HandleFunc("/api/getProject", getProject).Methods("GET")
 	router.HandleFunc("/api/addCue", addCue).Methods("POST")
-	router.HandleFunc("/api/removeCue", removeCue).Methods("POST")
+	router.HandleFunc("/api/removeCue/{cueNumber}", removeCue).Methods("POST")
 	router.HandleFunc("/api/renameCue/{cueNumber}/{cueName}", renameCue).Methods("POST")
 	router.HandleFunc("/api/moveCue/{from}/{to}", moveCue).Methods("GET", "POST") // TODO post only?
 	router.HandleFunc("/api/playNext", playNext).Methods("POST")
@@ -91,7 +91,7 @@ func addCue(writer http.ResponseWriter, request *http.Request) {
 
 func removeCue(writer http.ResponseWriter, request *http.Request) {
 	if mProject != nil {
-		cueNumber, err := strconv.Atoi(request.FormValue("cueNumber"))
+		cueNumber, err := strconv.Atoi(mux.Vars(request)["cueNumber"])
 		if err != nil {
 			sendError(writer, err)
 			return

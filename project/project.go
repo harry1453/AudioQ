@@ -39,7 +39,12 @@ type ProjectInfo struct {
 }
 
 func (project *Project) Init() error {
-	project.Name = "Untitled"
+	if project.Name == "" {
+		project.Name = "Untitled"
+	}
+	if project.Settings.BufferSize == 0 {
+		project.Settings.BufferSize = 100
+	}
 	project.currentCue = 0
 	project.isClosed = false
 	if err := project.loadNextCue(); err != nil {
