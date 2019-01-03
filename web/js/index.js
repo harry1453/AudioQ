@@ -7,7 +7,7 @@ function getProject() {
         document.getElementById("projectNameInput").value = project.Name;
         document.getElementById("bufferSize").value = project.Settings.BufferSize;
 
-        document.getElementById("cues").innerHTML =" <tr><th>#</th><th>Sel</th><th>Cue Name</th><th>Jump</th><td>Rename</td></tr>";
+        document.getElementById("cues").innerHTML =" <tr><th>#</th><th>Sel</th><th>Cue Name</th><th>Jump</th><th>Rename</th></tr>";
         for (let i = 0; i < project.Cues.length; i++) {
             let cue = project.Cues[i];
             let sel = project.CurrentCue === i ? "Sel" : "";
@@ -98,6 +98,22 @@ function renameCue(cueNumber, previousName) {
         }
         getProject();
     });
+}
+
+function loadProject() {
+    let formData = new FormData(document.getElementById("loadProjectForm"));
+    fetch("../api/loadProject", {method: "POST", body: formData}).then(http => {
+        return http.json();
+    }).then(result => {
+        if (!result.OK) {
+            logError("LoadProject()", result.Error);
+        }
+        getProject();
+    });
+}
+
+function saveProject() {
+    window.location.href = "../api/saveProject";
 }
 
 function logError(wasDoing, error) {

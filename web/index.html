@@ -39,6 +39,12 @@
                 <label for="addCue_cueName">Cue Name: </label><input type="text" id="addCue_cueName" name="cueName" />
             </form>
             <button onclick="addCueToProject()">Add Cue</button>
+            <h2>Load/Save Project</h2>
+            <form id="loadProjectForm" enctype="multipart/form-data">
+                <input type="file" name="audioqProject" />
+            </form>
+            <button onclick="loadProject()">Load Project</button>
+            <button onclick="saveProject()">Save Project</button>
         </div>
     </div>
 </body>
