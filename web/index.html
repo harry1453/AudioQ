@@ -32,6 +32,12 @@
                 <label for="bufferSize">Buffer Size: </label><input type="text" value="Loading..." name="BufferSize" id="bufferSize" />
             </form>
             <button onclick="updateProjectSettings()">Update</button>
+            <h2>Add Cue</h2>
+            <form id="addCueForm" enctype="multipart/form-data">
+                <input type="file" name="audioFile" />
+                <label for="addCue_cueName">Cue Name: </label><input type="text" id="addCue_cueName" name="cueName" />
+            </form>
+            <button onclick="addCueToProject()">Add Cue</button>
         </div>
     </div>
 </body>

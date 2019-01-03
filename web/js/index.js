@@ -71,7 +71,18 @@ function updateProjectSettings() {
         }
         getProject();
     });
+}
 
+function addCueToProject() {
+    let formData = new FormData(document.getElementById("addCueForm"));
+    fetch("../api/addCue", {method: "POST", body: formData}).then(http => {
+        return http.json();
+    }).then(result => {
+        if (!result.OK) {
+            logError("UpdateProjectSettings()", result.Error);
+        }
+        getProject();
+    });
 }
 
 function logError(wasDoing, error) {
