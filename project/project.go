@@ -79,6 +79,14 @@ func (project *Project) GetInfo() ProjectInfo {
 	}
 }
 
+func (project *Project) SetName(name string) {
+	project.Name = name
+}
+
+func (project *Project) SetSettings(settings Settings) {
+	project.Settings = settings
+}
+
 func (project *Project) IsCueNumberInRange(cueNumber int) bool {
 	return cueNumber >= 0 && cueNumber < len(project.Cues)
 }

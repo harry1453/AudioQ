@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/harry1453/audioQ/project"
 	"log"
@@ -27,9 +28,11 @@ func initialize() {
 	router.HandleFunc("/api/removeCue", removeCue).Methods("POST")
 	router.HandleFunc("/api/renameCue", renameCue).Methods("POST")
 	router.HandleFunc("/api/moveCue/{from}/{to}", moveCue).Methods("GET", "POST") // TODO post only?
-	router.HandleFunc("/api/playNext", playNext).Methods("GET", "POST")           // TODO post only?
-	router.HandleFunc("/api/jumpTo/{cueNumber}", jumpTo).Methods("GET", "POST")   // TODO post only?
-	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("GET", "POST")     // TODO post only?
+	router.HandleFunc("/api/playNext", playNext).Methods("POST")
+	router.HandleFunc("/api/jumpTo/{cueNumber}", jumpTo).Methods("POST")
+	router.HandleFunc("/api/stopPlaying", stopPlaying).Methods("POST")
+	router.HandleFunc("/api/updateProjectName/{name}", updateProjectName).Methods("POST")
+	router.HandleFunc("/api/updateProjectSettings", updateProjectSettings).Methods("POST")
 	router.HandleFunc("/api/loadProject", loadProject).Methods("POST")
 	router.HandleFunc("/api/saveProject", saveProject).Methods("GET")
 	log.Print(http.ListenAndServe(":8888", router))
@@ -168,8 +171,32 @@ func stopPlaying(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func updateProjectName(writer http.ResponseWriter, request *http.Request) {
+	if checkProject(writer) {
+		mProject.SetName(mux.Vars(request)["name"])
+		sendOK(writer)
+	}
+}
+
+func updateProjectSettings(writer http.ResponseWriter, request *http.Request) {
+	if checkProject(writer) {
+		bufferSize, err := strconv.Atoi(request.FormValue("BufferSize"))
+		if err != nil {
+			sendError(writer, err)
+			return
+		}
+		if bufferSize < 0 {
+			sendError(writer, fmt.Errorf("buffer size cannot be less than 0: %d", bufferSize))
+		}
+		mProject.SetSettings(project.Settings{
+			BufferSize: uint(bufferSize),
+		})
+		sendOK(writer)
+	}
+}
+
 func loadProject(writer http.ResponseWriter, request *http.Request) {
-	if mProject != nil {
+	if checkProject(writer) {
 		if err := request.ParseMultipartForm(32 << 20); err != nil {
 			sendError(writer, err)
 			return

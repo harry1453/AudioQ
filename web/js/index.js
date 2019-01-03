@@ -2,9 +2,10 @@ function getProject() {
     fetch("../api/getProject").then(http => {
         return http.json();
     }).then(project => {
-        document.getElementById("projectTitle").innerText = "Project: " + project.Name;
+        document.getElementById("projectName").innerText = "Project: " + project.Name;
 
-        document.getElementById("bufferSize").innerText = "Buffer Size: " + project.Settings.BufferSize;
+        document.getElementById("projectNameInput").value = project.Name;
+        document.getElementById("bufferSize").value = project.Settings.BufferSize;
 
         document.getElementById("cues").innerHTML =" <tr><th>#</th><th>Sel</th><th>Cue Name</th><th>Jump</th></tr>";
         for (let i = 0; i < project.Cues.length; i++) {
@@ -20,10 +21,21 @@ function playNext() {
         return http.json();
     }).then(result => {
         if (!result.OK) {
-            logError("PlayNext()");
+            logError("PlayNext()", result.Error);
         }
         getProject();
-    })
+    });
+}
+
+function stopPlaying() {
+    fetch("../api/stopPlaying", {method: "POST"}).then(http => {
+        return http.json();
+    }).then(result => {
+        if (!result.OK) {
+            logError("StopPlaying()", result.Error);
+        }
+        getProject();
+    });
 }
 
 function jumpToCue(cueNumber) {
@@ -31,10 +43,35 @@ function jumpToCue(cueNumber) {
         return http.json();
     }).then(result => {
         if (!result.OK) {
-            logError("JumpToCue("+cueNumber+")");
+            logError("JumpToCue("+cueNumber+")", result.Error);
         }
         getProject();
-    })
+    });
+}
+
+function updateProjectName() {
+    let projectName = document.getElementById("projectNameInput").value;
+    fetch("../api/updateProjectName/"+projectName, {method: "POST"}).then(http => {
+        return http.json();
+    }).then(result => {
+        if (!result.OK) {
+            logError("UpdateProjectName("+projectName+")", result.Error);
+        }
+        getProject();
+    });
+}
+
+function updateProjectSettings() {
+    let formData = new FormData(document.getElementById("settingsForm"));
+    fetch("../api/updateProjectSettings", {method: "POST", body: formData}).then(http => {
+        return http.json();
+    }).then(result => {
+        if (!result.OK) {
+            logError("UpdateProjectSettings()", result.Error);
+        }
+        getProject();
+    });
+
 }
 
 function logError(wasDoing, error) {
