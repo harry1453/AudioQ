@@ -1,7 +1,13 @@
+let currentCue = 0;
+let numberOfCues = 0;
+
 function getProject() {
     fetch("../api/getProject").then(http => {
         return http.json();
     }).then(project => {
+        currentCue = project.CurrentCue;
+        numberOfCues = project.Cues.length;
+
         document.getElementById("projectName").innerText = "Project: " + project.Name;
 
         document.getElementById("projectNameInput").value = project.Name;
@@ -35,6 +41,19 @@ function stopPlaying() {
     }).then(result => {
         if (!result.OK) {
             logError("StopPlaying()", result.Error);
+        }
+        getProject();
+    });
+}
+
+function moveCue() {
+    let from = prompt("From?");
+    let to = prompt("To?");
+    fetch("../api/moveCue/"+from+"/"+to, {method: "POST"}).then(http => {
+        return http.json();
+    }).then(result => {
+        if (!result.OK) {
+            logError("JumpToCue("+cueNumber+")", result.Error);
         }
         getProject();
     });
@@ -101,7 +120,7 @@ function removeCueFromProject(cueNumber) {
 
 function renameCue(cueNumber, previousName) {
     let cueName = prompt("New cue name?", previousName);
-    if (cueName === previousName) return;
+    if (cueName === previousName || cueName === "" || cueName === null) return;
     fetch("../api/renameCue/"+cueNumber+"/"+cueName, {method: "POST"}).then(http => {
         return http.json();
     }).then(result => {
@@ -124,6 +143,22 @@ function loadProject() {
     });
 }
 
+function forwardOne() {
+    let newCue = currentCue + 1;
+    if (newCue === numberOfCues) {
+        newCue = 0;
+    }
+    jumpToCue(newCue);
+}
+
+function backOne() {
+    let newCue = currentCue - 1;
+    if (newCue === -1) {
+        newCue = numberOfCues - 1;
+    }
+    jumpToCue(newCue);
+}
+
 function saveProject() {
     window.location.href = "../api/saveProject";
 }
@@ -133,3 +168,29 @@ function logError(wasDoing, error) {
 }
 
 getProject();
+
+document.onkeypress = function (e) {
+    e = e || window.event;
+    // use e.keyCode
+    switch (e.key) {
+        case " ":
+            playNext();
+            break;
+
+        case "s":
+            stopPlaying();
+            break;
+
+        case "d":
+            forwardOne();
+            break;
+
+        case "a":
+            backOne();
+            break;
+
+        case "w":
+            getProject();
+            break;
+    }
+};
