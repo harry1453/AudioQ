@@ -5,7 +5,7 @@ import (
 )
 
 func toBase64(input []byte) string {
-	return base64.StdEncoding.EncodeToString([]byte(input))
+	return base64.StdEncoding.EncodeToString(input)
 }
 
 func fromBase64(input string) ([]byte, error) {

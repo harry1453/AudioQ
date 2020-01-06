@@ -9,3 +9,5 @@ require (
 	github.com/mewkiz/flac v1.0.5 // indirect
 	github.com/pkg/errors v0.8.0 // indirect
 )
+
+go 1.13
