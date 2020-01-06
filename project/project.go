@@ -22,13 +22,15 @@ type Settings struct {
 }
 
 type Project struct {
-	Name               string
-	Settings           Settings
-	Cues               []Cue
-	isClosed           bool
-	currentCue         uint
-	nextCuePlayable    *audio.Playable
-	cueFinishedChannel chan bool
+	name                    string
+	nameUpdateListeners     []chan<- string
+	settings                Settings
+	settingsUpdateListeners []chan<- Settings
+	Cues                    []Cue
+	isClosed                bool
+	currentCue              uint
+	nextCuePlayable         *audio.Playable
+	cueFinishedChannel      chan bool
 }
 
 type ProjectInfo struct {
@@ -39,11 +41,11 @@ type ProjectInfo struct {
 }
 
 func (project *Project) Init() error {
-	if project.Name == "" {
-		project.Name = "Untitled"
+	if project.name == "" {
+		project.name = "Untitled"
 	}
-	if project.Settings.BufferSize == 0 {
-		project.Settings.BufferSize = 100
+	if project.settings.BufferSize == 0 {
+		project.settings.BufferSize = 100
 	}
 	project.currentCue = 0
 	project.isClosed = false
@@ -77,19 +79,41 @@ func (project *Project) GetInfo() ProjectInfo {
 		cues[i] = project.Cues[i].getInfo()
 	}
 	return ProjectInfo{
-		Name:       project.Name,
-		Settings:   project.Settings,
+		Name:       project.name,
+		Settings:   project.settings,
 		Cues:       cues,
 		CurrentCue: project.currentCue,
 	}
 }
 
+func (project *Project) AddNameListener(listener chan<- string) {
+	project.nameUpdateListeners = append(project.nameUpdateListeners, listener)
+}
+
+func (project *Project) GetName() string {
+	return project.name
+}
+
 func (project *Project) SetName(name string) {
-	project.Name = name
+	project.name = name
+	for _, listener := range project.nameUpdateListeners {
+		listener <- name
+	}
+}
+
+func (project *Project) AddSettingsListener(listener chan<- Settings) {
+	project.settingsUpdateListeners = append(project.settingsUpdateListeners, listener)
+}
+
+func (project *Project) GetSettings() Settings {
+	return project.settings
 }
 
 func (project *Project) SetSettings(settings Settings) {
-	project.Settings = settings
+	project.settings = settings
+	for _, listener := range project.settingsUpdateListeners {
+		listener <- settings
+	}
 }
 
 func (project *Project) IsCueNumberInRange(cueNumber int) bool {
@@ -104,7 +128,7 @@ func (project *Project) StopPlaying() {
 func (project *Project) monitorCueFinishedChannel() {
 	for !project.isClosed {
 		if project.nextCuePlayable != nil {
-			project.nextCuePlayable.Initialize(project.Settings.BufferSize)
+			project.nextCuePlayable.Initialize(project.settings.BufferSize)
 		}
 		<-project.cueFinishedChannel
 	}
@@ -191,7 +215,7 @@ func (project *Project) playNext() error {
 		if project.nextCuePlayable.IsPlaying() {
 			return fmt.Errorf("next cue already playing")
 		} else {
-			return project.nextCuePlayable.Play(project.cueFinishedChannel, project.Settings.BufferSize)
+			return project.nextCuePlayable.Play(project.cueFinishedChannel, project.settings.BufferSize)
 		}
 	} else {
 		return fmt.Errorf("no cue loaded")

@@ -212,7 +212,7 @@ func loadProject(writer http.ResponseWriter, request *http.Request) {
 
 func saveProject(writer http.ResponseWriter, request *http.Request) {
 	if checkProject(writer) {
-		writer.Header().Set("Content-Disposition", "attachment; filename="+project.Instance.Name+".audioq")
+		writer.Header().Set("Content-Disposition", "attachment; filename="+project.Instance.GetName()+".audioq")
 		writer.Header().Set("Content-Type", request.Header.Get("Content-Type"))
 		if err := json.NewEncoder(writer).Encode(*project.Instance); err != nil {
 			sendError(writer, err)
