@@ -2,7 +2,6 @@ package console
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"github.com/harry1453/audioQ/project"
 	"os"
@@ -38,39 +37,12 @@ func Initialize() {
 
 func save() {
 	fmt.Println("Where to?")
-	fileName := getCommand()
-	file, err := os.Create(fileName)
-	if err != nil {
-		fmt.Println("ERROR: ", err)
-		return
-	}
-	defer file.Close()
-	if err := json.NewEncoder(file).Encode(project.Instance); err != nil {
-		fmt.Println("ERROR: ", err)
-		return
-	}
-	fmt.Println("OK!")
+	project.SaveProject(getCommand())
 }
 
 func load() {
 	fmt.Println("Where from?")
-	fileName := getCommand()
-	file, err := os.Open(fileName)
-	if err != nil {
-		fmt.Println("ERROR: ", err)
-		return
-	}
-	defer file.Close()
-	project.Instance.Close()
-	if err := json.NewDecoder(file).Decode(project.Instance); err != nil {
-		fmt.Println("ERROR: ", err)
-		return
-	}
-	if err := project.Instance.Init(); err != nil {
-		fmt.Println("ERROR: ", err)
-		return
-	}
-	fmt.Println("OK!")
+	project.LoadProject(getCommand())
 }
 
 func play() {
