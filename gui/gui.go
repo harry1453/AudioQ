@@ -41,8 +41,8 @@ func Initialize() {
 		Name:     "AudioQ " + constants.VERSION,
 		Layout:   HBox{},
 		Size: Size{
-			Width:  100,
-			Height: 100,
+			Width:  1000,
+			Height: 400,
 		},
 		Children: []Widget{
 			HSplitter{
@@ -57,10 +57,14 @@ func Initialize() {
 								CheckBoxes:       true,
 								ColumnsOrderable: true,
 								MultiSelection:   true,
+								MaxSize: Size{
+									Width:  1000,
+									Height: 1000,
+								},
 								Columns: []TableViewColumn{
 									{Title: "#"},
 									{Title: "Sel"},
-									{Title: "Name"},
+									{Title: "Name", Width: 400},
 								},
 								Model: cueTableModel,
 							},
@@ -79,15 +83,29 @@ func Initialize() {
 											project.StopPlaying()
 										},
 									},
+								},
+							},
+							Composite{
+								Layout: HBox{Spacing: 5},
+								Children: []Widget{
 									PushButton{
-										Text: "Move Cue",
+										Text: "Delete",
 										OnClicked: func() {
-											fromString, err := prompt(window, "Index From?")
-											if err != nil || fromString == "" {
+											selected, err := getFirstSelected(cueTable)
+											if err != nil {
 												fmt.Println("Error", err)
 												return
 											}
-											from, err := strconv.Atoi(fromString)
+											if err := project.RemoveCue(selected); err != nil {
+												fmt.Println("Error", err)
+												return
+											}
+										},
+									},
+									PushButton{
+										Text: "Move",
+										OnClicked: func() {
+											from, err := getFirstSelected(cueTable)
 											if err != nil {
 												fmt.Println("Error", err)
 												return
@@ -97,7 +115,7 @@ func Initialize() {
 												fmt.Println("Error", err)
 												return
 											}
-											to, err := strconv.Atoi(fromString)
+											to, err := strconv.Atoi(toString)
 											if err != nil {
 												fmt.Println("Error", err)
 												return
@@ -117,7 +135,7 @@ func Initialize() {
 						Layout: VBox{},
 						Children: []Widget{
 							Composite{
-								Layout: HBox{Spacing: 1},
+								Layout: HBox{Spacing: 5},
 								Children: []Widget{
 									PushButton{
 										Text: "Open",
@@ -175,7 +193,7 @@ func Initialize() {
 								project.SetSettings(project.Settings{BufferSize: uint(n)})
 							}, settingsStringUpdateChannel),
 							Composite{
-								Layout: HBox{Spacing: 1},
+								Layout: HBox{Spacing: 5},
 								Children: []Widget{
 									TextLabel{Text: "Cue Name:"},
 									TextEdit{

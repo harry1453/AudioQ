@@ -12,17 +12,17 @@ import (
 	"io/ioutil"
 )
 
-type AudioEncoding uint
+type Encoding uint
 
 const (
-	WAV = iota
+	WAV Encoding = iota
 	MP3
 	FLAC
 	VORBIS
 )
 
 type File struct {
-	Encoding AudioEncoding
+	Encoding Encoding
 	Data     string
 }
 

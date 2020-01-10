@@ -17,7 +17,7 @@ func ParseFile(fileName string, file io.Reader) (File, error) {
 	if err != nil {
 		return File{}, err
 	}
-	var encoding AudioEncoding
+	var encoding Encoding
 	if strings.HasSuffix(fileName, ".mp3") {
 		encoding = MP3
 	} else if strings.HasSuffix(fileName, ".ogg") {
