@@ -21,6 +21,10 @@ github.com/hajimehoshi/oto v0.2.1 h1:8mn8yNgLE/irztYCw8iBaGMb2oxXwaNqDh85j9fk+X8
 github.com/hajimehoshi/oto v0.2.1/go.mod h1:0ZepxT+2KLDrCm1gdkKBCQCxr+8fgQqoh0I7g+kr040=
 github.com/harry1453/go-common-file-dialog v0.0.0-20191101134429-1e8906a6ee00 h1:DyFGX5m/Tf3UPLw+kkMEegb57CXfwy42OLUUYXES/uQ=
 github.com/harry1453/go-common-file-dialog v0.0.0-20191101134429-1e8906a6ee00/go.mod h1:3zwmbo7fy+uYGyaec74mu+Z9DPg0aEt10fSjjPwfyiY=
+github.com/jfreymuth/oggvorbis v1.0.1 h1:NT0eXBgE2WHzu6RT/6zcb2H10Kxj6Fm3PccT0LE6bqw=
+github.com/jfreymuth/oggvorbis v1.0.1/go.mod h1:NqS+K+UXKje0FUYUPosyQ+XTVvjmVjps1aEZH1sumIk=
+github.com/jfreymuth/vorbis v1.0.0 h1:SmDf783s82lIjGZi8EGUUaS7YxPHgRj4ZXW/h7rUi7U=
+github.com/jfreymuth/vorbis v1.0.0/go.mod h1:8zy3lUAm9K/rJJk223RKy6vjCZTWC61NA2QD06bfOE0=
 github.com/lxn/walk v0.0.0-20190521093318-7561cc734837 h1:P0yOCAsg4SmdZOP8+64IPNj5tkGpI3NlP4T5P8r8HJY=
 github.com/lxn/walk v0.0.0-20190521093318-7561cc734837/go.mod h1:E23UucZGqpuUANJooIbHWCufXvOcT6E7Stq81gU+CSQ=
 github.com/lxn/walk v0.0.0-20191031113707-f2f0acf7ad55 h1:s0bEUlpWWj4qemcHKbJQOarJcqwHu4wIreXc3C/owS0=

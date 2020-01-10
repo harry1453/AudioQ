@@ -10,7 +10,7 @@ import (
 
 type Cue struct {
 	Name  string
-	Audio audio.AudioFile
+	Audio audio.File
 }
 
 type CueInfo struct {
@@ -21,17 +21,18 @@ type Settings struct {
 	BufferSize uint
 }
 
-type Project struct {
-	name                    string
+var (
 	nameUpdateListeners     []chan<- string
-	settings                Settings
 	settingsUpdateListeners []chan<- Settings
+	cuesUpdateListeners     []func()
+	name                    string
+	settings                Settings
 	Cues                    []Cue
 	isClosed                bool
-	currentCue              uint
+	CurrentCue              uint
 	nextCuePlayable         *audio.Playable
 	cueFinishedChannel      chan bool
-}
+)
 
 type ProjectInfo struct {
 	Name       string
@@ -40,31 +41,38 @@ type ProjectInfo struct {
 	CurrentCue uint
 }
 
-func (project *Project) Init() error {
-	if project.name == "" {
-		project.name = "Untitled"
+func Init() error {
+	if name == "" {
+		name = "Untitled"
 	}
-	if project.settings.BufferSize == 0 {
-		project.settings.BufferSize = 100
+	if settings.BufferSize == 0 {
+		settings.BufferSize = 100
 	}
-	project.currentCue = 0
-	project.isClosed = false
-	if err := project.loadNextCue(); err != nil {
+	CurrentCue = 0
+	isClosed = false
+	if err := loadNextCue(); err != nil {
 		return err
 	}
-	project.cueFinishedChannel = make(chan bool)
-	go project.monitorCueFinishedChannel()
+	cueFinishedChannel = make(chan bool)
+	go monitorCueFinishedChannel()
+	for _, listener := range nameUpdateListeners {
+		listener <- name
+	}
+	for _, listener := range settingsUpdateListeners {
+		listener <- settings
+	}
+	updateCuesListeners()
 	return nil
 }
 
-func (project *Project) Close() {
-	project.isClosed = true
+func Close() {
+	isClosed = true
 	audio.StopAll()
-	if project.nextCuePlayable != nil {
-		project.nextCuePlayable.Close()
-		project.nextCuePlayable = nil
+	if nextCuePlayable != nil {
+		_ = nextCuePlayable.Close()
+		nextCuePlayable = nil
 	}
-	close(project.cueFinishedChannel)
+	close(cueFinishedChannel)
 }
 
 func (cue *Cue) getInfo() CueInfo {
@@ -73,135 +81,151 @@ func (cue *Cue) getInfo() CueInfo {
 	}
 }
 
-func (project *Project) GetInfo() ProjectInfo {
-	cues := make([]CueInfo, len(project.Cues))
-	for i := 0; i < len(project.Cues); i++ {
-		cues[i] = project.Cues[i].getInfo()
+func GetInfo() ProjectInfo {
+	cues := make([]CueInfo, len(Cues))
+	for i := 0; i < len(Cues); i++ {
+		cues[i] = Cues[i].getInfo()
 	}
 	return ProjectInfo{
-		Name:       project.name,
-		Settings:   project.settings,
+		Name:       name,
+		Settings:   settings,
 		Cues:       cues,
-		CurrentCue: project.currentCue,
+		CurrentCue: CurrentCue,
 	}
 }
 
-func (project *Project) AddNameListener(listener chan<- string) {
-	project.nameUpdateListeners = append(project.nameUpdateListeners, listener)
+func AddNameListener(listener chan<- string) {
+	nameUpdateListeners = append(nameUpdateListeners, listener)
 }
 
-func (project *Project) GetName() string {
-	return project.name
+func GetName() string {
+	return name
 }
 
-func (project *Project) SetName(name string) {
-	project.name = name
-	for _, listener := range project.nameUpdateListeners {
+func SetName(name string) {
+	name = name
+	for _, listener := range nameUpdateListeners {
 		listener <- name
 	}
 }
 
-func (project *Project) AddSettingsListener(listener chan<- Settings) {
-	project.settingsUpdateListeners = append(project.settingsUpdateListeners, listener)
+func AddSettingsListener(listener chan<- Settings) {
+	settingsUpdateListeners = append(settingsUpdateListeners, listener)
 }
 
-func (project *Project) GetSettings() Settings {
-	return project.settings
+func GetSettings() Settings {
+	return settings
 }
 
-func (project *Project) SetSettings(settings Settings) {
-	project.settings = settings
-	for _, listener := range project.settingsUpdateListeners {
+func SetSettings(newSettings Settings) {
+	settings = newSettings
+	for _, listener := range settingsUpdateListeners {
 		listener <- settings
 	}
 }
 
-func (project *Project) IsCueNumberInRange(cueNumber int) bool {
-	return cueNumber >= 0 && cueNumber < len(project.Cues)
+func AddCuesUpdateListener(listener func()) {
+	cuesUpdateListeners = append(cuesUpdateListeners, listener)
 }
 
-func (project *Project) StopPlaying() {
+func IsCueNumberInRange(cueNumber int) bool {
+	return cueNumber >= 0 && cueNumber < len(Cues)
+}
+
+func StopPlaying() {
 	audio.StopAll()
-	project.cueFinishedChannel <- true
+	cueFinishedChannel <- true
 }
 
-func (project *Project) monitorCueFinishedChannel() {
-	for !project.isClosed {
-		if project.nextCuePlayable != nil {
-			project.nextCuePlayable.Initialize(project.settings.BufferSize)
+func monitorCueFinishedChannel() {
+	for !isClosed {
+		if nextCuePlayable != nil {
+			if err := nextCuePlayable.Initialize(settings.BufferSize); err != nil {
+				fmt.Println("Error initializing playable", err)
+			}
 		}
-		<-project.cueFinishedChannel
+		<-cueFinishedChannel
 	}
 }
 
-func (project *Project) AddCue(name string, fileName string, file io.Reader) error {
+func updateCuesListeners() {
+	for _, listener := range cuesUpdateListeners {
+		listener()
+	}
+}
+
+func AddCue(name string, fileName string, file io.Reader) error {
 	cueAudio, err := audio.ParseFile(fileName, file)
 	if err != nil {
 		return err
 	}
-	wasAtEnd := project.isAtEndOfQueue()
-	project.Cues = append(project.Cues, Cue{name, cueAudio})
+	wasAtEnd := isAtEndOfQueue()
+	Cues = append(Cues, Cue{name, cueAudio})
+	defer updateCuesListeners()
 	if wasAtEnd {
-		if err := project.loadNextCue(); err != nil {
+		if err := loadNextCue(); err != nil {
 			return err
 		} else {
-			project.cueFinishedChannel <- true
+			cueFinishedChannel <- true
 			return nil
 		}
 	}
 	return nil
 }
 
-func (project *Project) RemoveCue(cueNumber int) error {
-	if !project.IsCueNumberInRange(cueNumber) {
+func RemoveCue(cueNumber int) error {
+	if !IsCueNumberInRange(cueNumber) {
 		return fmt.Errorf("cue number out of range: %d", cueNumber)
 	}
-	if project.isAtEndOfQueue() {
-		project.currentCue--
+	if isAtEndOfQueue() {
+		CurrentCue--
 	}
-	copy(project.Cues[cueNumber:], project.Cues[cueNumber+1:])
-	project.Cues[len(project.Cues)-1] = Cue{}
-	project.Cues = project.Cues[:len(project.Cues)-1]
-	return project.loadNextCue()
+	copy(Cues[cueNumber:], Cues[cueNumber+1:])
+	Cues[len(Cues)-1] = Cue{}
+	Cues = Cues[:len(Cues)-1]
+	defer updateCuesListeners()
+	return loadNextCue()
 }
 
-func (project *Project) RenameCue(cueNumber int, name string) error {
-	if !project.IsCueNumberInRange(cueNumber) {
+func RenameCue(cueNumber int, name string) error {
+	if !IsCueNumberInRange(cueNumber) {
 		return fmt.Errorf("cue number out of range: %d", cueNumber)
 	}
-	project.Cues[cueNumber].Name = name
+	Cues[cueNumber].Name = name
+	defer updateCuesListeners()
 	return nil
 }
 
-func (project *Project) MoveCue(from, to int) error {
-	if !project.IsCueNumberInRange(from) {
+func MoveCue(from, to int) error {
+	if !IsCueNumberInRange(from) {
 		return fmt.Errorf("cue number out of range: %d", from)
 	}
-	if !project.IsCueNumberInRange(to) {
+	if !IsCueNumberInRange(to) {
 		return fmt.Errorf("cue number out of range: %d", from)
 	}
 	// Get Cue to move
-	cue := project.Cues[from]
+	cue := Cues[from]
 
 	// Remove cue
-	copy(project.Cues[from:], project.Cues[from+1:])
-	project.Cues[len(project.Cues)-1] = Cue{}
-	project.Cues = project.Cues[:len(project.Cues)-1]
+	copy(Cues[from:], Cues[from+1:])
+	Cues[len(Cues)-1] = Cue{}
+	Cues = Cues[:len(Cues)-1]
 
 	// Insert the Cue again
-	project.Cues = append(project.Cues, Cue{} /* use the zero value of the element type */)
-	copy(project.Cues[to+1:], project.Cues[to:])
-	project.Cues[to] = cue
+	Cues = append(Cues, Cue{} /* use the zero value of the element type */)
+	copy(Cues[to+1:], Cues[to:])
+	Cues[to] = cue
+	defer updateCuesListeners()
 	return nil
 }
 
 // Begins playing the next song and then attempts to advance the queue
-func (project *Project) PlayNext() error {
-	if err := project.playNext(); err != nil {
+func PlayNext() error {
+	if err := playNext(); err != nil {
 		return err
 	} else {
-		project.advanceQueue()
-		if err = project.loadNextCue(); err != nil {
+		advanceQueue()
+		if err = loadNextCue(); err != nil {
 			return err
 		} else {
 			return nil
@@ -210,41 +234,43 @@ func (project *Project) PlayNext() error {
 }
 
 // Begins playing the next song in the queue
-func (project *Project) playNext() error {
-	if project.nextCuePlayable != nil {
-		if project.nextCuePlayable.IsPlaying() {
+func playNext() error {
+	if nextCuePlayable != nil {
+		if nextCuePlayable.IsPlaying() {
 			return fmt.Errorf("next cue already playing")
 		} else {
-			return project.nextCuePlayable.Play(project.cueFinishedChannel, project.settings.BufferSize)
+			return nextCuePlayable.Play(cueFinishedChannel, settings.BufferSize)
 		}
 	} else {
 		return fmt.Errorf("no cue loaded")
 	}
 }
 
-func (project *Project) JumpTo(cueNumber int) error {
-	if !project.IsCueNumberInRange(cueNumber) {
+func JumpTo(cueNumber int) error {
+	if !IsCueNumberInRange(cueNumber) {
 		return fmt.Errorf("cue number outside of range of cues: %d", cueNumber)
 	}
-	project.currentCue = uint(cueNumber)
-	return project.loadNextCue()
+	CurrentCue = uint(cueNumber)
+	defer updateCuesListeners()
+	return loadNextCue()
 }
 
-func (project *Project) advanceQueue() {
-	project.currentCue++
-	if project.currentCue == uint(len(project.Cues)) {
-		project.currentCue = 0
+func advanceQueue() {
+	CurrentCue++
+	if CurrentCue == uint(len(Cues)) {
+		CurrentCue = 0
 	}
+	defer updateCuesListeners()
 }
 
 // Returns whether the current cue is the last one or not
 // First check is to avoid uint from underflowing
-func (project *Project) isAtEndOfQueue() bool {
-	if len(project.Cues) == 0 {
+func isAtEndOfQueue() bool {
+	if len(Cues) == 0 {
 		return true
 	}
-	length := uint(len(project.Cues) - 1)
-	if project.currentCue == length {
+	length := uint(len(Cues) - 1)
+	if CurrentCue == length {
 		return true
 	}
 	return false
@@ -252,19 +278,19 @@ func (project *Project) isAtEndOfQueue() bool {
 
 // Loads the next cue as a playable or sets it to nil
 // If the end of the queue has been reached
-func (project *Project) loadNextCue() error {
-	if len(project.Cues) == 0 {
+func loadNextCue() error {
+	if len(Cues) == 0 {
 		return nil
 	}
 
-	n := project.currentCue
-	if n >= uint(len(project.Cues)) {
+	n := CurrentCue
+	if n >= uint(len(Cues)) {
 		n = 0
 	}
-	if playable, err := project.Cues[n].Audio.Decode(); err != nil {
+	if playable, err := Cues[n].Audio.Decode(); err != nil {
 		return err
 	} else {
-		project.nextCuePlayable = &playable
+		nextCuePlayable = &playable
 	}
 	return nil
 }

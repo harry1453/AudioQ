@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"github.com/harry1453/audioQ/constants"
 	"github.com/harry1453/audioQ/project"
 	"github.com/harry1453/go-common-file-dialog/cfd"
@@ -8,24 +9,37 @@ import (
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 	"log"
+	"os"
 	"strconv"
 )
 
 func Initialize() {
 	nameUpdateChannel := make(chan string)
-	project.Instance.AddNameListener(nameUpdateChannel)
+	project.AddNameListener(nameUpdateChannel)
 	settingsUpdateChannel := make(chan project.Settings)
-	project.Instance.AddSettingsListener(settingsUpdateChannel)
+	project.AddSettingsListener(settingsUpdateChannel)
 	settingsStringUpdateChannel := make(chan string)
 	go func() {
 		for {
 			settingsStringUpdateChannel <- strconv.Itoa(int((<-settingsUpdateChannel).BufferSize))
 		}
 	}()
-	mainWindow := MainWindow{
-		Title:  "AudioQ " + constants.VERSION,
-		Name:   "AudioQ " + constants.VERSION,
-		Layout: HBox{},
+
+	var cueName *walk.TextEdit
+	var cueTable *walk.TableView
+	cueTableModel := NewCueModel()
+
+	project.AddCuesUpdateListener(func() {
+		cueTableModel.ResetRows()
+	})
+
+	var window *walk.MainWindow
+
+	exit, err := MainWindow{
+		AssignTo: &window,
+		Title:    "AudioQ " + constants.VERSION,
+		Name:     "AudioQ " + constants.VERSION,
+		Layout:   HBox{},
 		Size: Size{
 			Width:  100,
 			Height: 100,
@@ -34,9 +48,69 @@ func Initialize() {
 			HSplitter{
 				Children: []Widget{
 					Composite{
-						Name:     "Control View",
-						Layout:   VBox{},
-						Children: []Widget{},
+						Name:   "Control View",
+						Layout: VBox{},
+						Children: []Widget{
+							TableView{
+								AssignTo:         &cueTable,
+								AlternatingRowBG: true,
+								CheckBoxes:       true,
+								ColumnsOrderable: true,
+								MultiSelection:   true,
+								Columns: []TableViewColumn{
+									{Title: "#"},
+									{Title: "Sel"},
+									{Title: "Name"},
+								},
+								Model: cueTableModel,
+							},
+							Composite{
+								Layout: HBox{Spacing: 5},
+								Children: []Widget{
+									PushButton{
+										Text: "Play",
+										OnClicked: func() {
+											project.PlayNext() // TODO error
+										},
+									},
+									PushButton{
+										Text: "Stop",
+										OnClicked: func() {
+											project.StopPlaying()
+										},
+									},
+									PushButton{
+										Text: "Move Cue",
+										OnClicked: func() {
+											fromString, err := prompt(window, "Index From?")
+											if err != nil || fromString == "" {
+												fmt.Println("Error", err)
+												return
+											}
+											from, err := strconv.Atoi(fromString)
+											if err != nil {
+												fmt.Println("Error", err)
+												return
+											}
+											toString, err := prompt(window, "Index To?")
+											if err != nil || toString == "" {
+												fmt.Println("Error", err)
+												return
+											}
+											to, err := strconv.Atoi(fromString)
+											if err != nil {
+												fmt.Println("Error", err)
+												return
+											}
+											if err := project.MoveCue(from, to); err != nil {
+												fmt.Println("Error", err)
+												return
+											}
+										},
+									},
+								},
+							},
+						},
 					},
 					Composite{
 						Name:   "Project View",
@@ -61,7 +135,9 @@ func Initialize() {
 												log.Println("Error showing open file dialog:", err)
 												return
 											}
-											project.LoadProject(fileName)
+											if err := project.LoadProjectFile(fileName); err != nil {
+												log.Println("Error loading file:", err)
+											}
 										},
 									},
 									PushButton{
@@ -80,54 +156,67 @@ func Initialize() {
 												log.Println("Error showing open file dialog:", err)
 												return
 											}
-											project.SaveProject(fileName)
+											if err := project.SaveProjectFile(fileName); err != nil {
+												log.Println("Error saving file:", err)
+											}
 										},
 									},
 								},
 							},
-							Setting("Project name", func(newName string) {
-								project.Instance.SetName(newName)
+							setting("Project name", func(newName string) {
+								project.SetName(newName)
 							}, nameUpdateChannel),
-							Setting("Buffer Size", func(newBufferSize string) {
+							setting("Buffer Size", func(newBufferSize string) {
 								n, err := strconv.Atoi(newBufferSize)
 								if err != nil {
 									log.Println("Failed to parse buffer size:", newBufferSize, err)
 									return
 								}
-								project.Instance.SetSettings(project.Settings{BufferSize: uint(n)})
+								project.SetSettings(project.Settings{BufferSize: uint(n)})
 							}, settingsStringUpdateChannel),
+							Composite{
+								Layout: HBox{Spacing: 1},
+								Children: []Widget{
+									TextLabel{Text: "Cue Name:"},
+									TextEdit{
+										AssignTo: &cueName,
+									},
+									PushButton{
+										Text: "Add Cue",
+										OnClicked: func() {
+											fileName, err := cfdutil.ShowOpenFileDialog(cfd.DialogConfig{
+												Title: "Open Cue",
+												FileFilters: []cfd.FileFilter{
+													{
+														DisplayName: "Audio Files (*.wav, *.flac, *.mp3, *.ogg",
+														Pattern:     "*.wav;*.flac;*.mp3;*.ogg",
+													},
+												},
+											})
+											if err != nil {
+												log.Println("Error showing open file dialog:", err)
+												return
+											}
+											file, err := os.Open(fileName)
+											if err != nil {
+												log.Println("Error opening file:", err)
+												return
+											}
+											if err := project.AddCue(cueName.Text(), fileName, file); err != nil {
+												log.Println("Error adding cue:", err)
+												return
+											}
+										},
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 		},
-	}
-	exit, err := mainWindow.Run()
+	}.Run()
 	if err != nil {
 		log.Println("GUI Error:", exit, err)
-	}
-}
-
-func Setting(name string, onUpdate func(string), newValueChannel <-chan string) Widget {
-	var textEdit *walk.TextEdit
-	go func() {
-		for {
-			textEdit.SetText(<-newValueChannel)
-		}
-	}()
-	return Composite{
-		Layout: HBox{Spacing: 1},
-		Children: []Widget{
-			TextLabel{
-				Text: name + ": ",
-			},
-			TextEdit{
-				AssignTo:      &textEdit,
-				CompactHeight: true,
-				OnTextChanged: func() {
-					onUpdate(textEdit.Text())
-				},
-			},
-		},
 	}
 }

@@ -37,23 +37,27 @@ func Initialize() {
 
 func save() {
 	fmt.Println("Where to?")
-	project.SaveProject(getCommand())
+	if err := project.SaveProjectFile(getCommand()); err != nil {
+		fmt.Println("Error!, err")
+	}
 }
 
 func load() {
 	fmt.Println("Where from?")
-	project.LoadProject(getCommand())
+	if err := project.LoadProjectFile(getCommand()); err != nil {
+		fmt.Println("Error!, err")
+	}
 }
 
 func play() {
 	fmt.Println("next!")
-	err := project.Instance.PlayNext()
+	err := project.PlayNext()
 	fmt.Println("Error: ", err)
 }
 
 func stop() {
 	fmt.Println("stop!")
-	project.Instance.StopPlaying()
+	project.StopPlaying()
 }
 
 func jump() {
@@ -63,7 +67,7 @@ func jump() {
 		fmt.Println("could not parse")
 		return
 	}
-	project.Instance.JumpTo(n)
+	project.JumpTo(n)
 }
 
 func addSong() {
@@ -77,7 +81,7 @@ func addSong() {
 		fmt.Println("Error:", err)
 		return
 	}
-	fmt.Println("Error: ", project.Instance.AddCue(cueName, fileName, file))
+	fmt.Println("Error: ", project.AddCue(cueName, fileName, file))
 }
 
 func getCommand() string {

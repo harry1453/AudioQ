@@ -7,6 +7,7 @@ require (
 	github.com/hajimehoshi/go-mp3 v0.1.1 // indirect
 	github.com/hajimehoshi/oto v0.2.1 // indirect
 	github.com/harry1453/go-common-file-dialog v0.0.0-20191101134429-1e8906a6ee00
+	github.com/jfreymuth/oggvorbis v1.0.1 // indirect
 	github.com/lxn/walk v0.0.0-20191031165957-7370661788f6
 	github.com/lxn/win v0.0.0-20191024121223-cc00c7492fe1 // indirect
 	github.com/mewkiz/flac v1.0.5 // indirect

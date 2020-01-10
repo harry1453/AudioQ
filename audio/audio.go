@@ -12,10 +12,10 @@ func StopAll() {
 	speaker.Clear()
 }
 
-func ParseFile(fileName string, file io.Reader) (AudioFile, error) {
+func ParseFile(fileName string, file io.Reader) (File, error) {
 	fileContents, err := ioutil.ReadAll(file)
 	if err != nil {
-		return AudioFile{}, err
+		return File{}, err
 	}
 	var encoding AudioEncoding
 	if strings.HasSuffix(fileName, ".mp3") {
@@ -27,10 +27,10 @@ func ParseFile(fileName string, file io.Reader) (AudioFile, error) {
 	} else if strings.HasSuffix(fileName, ".flac") {
 		encoding = FLAC
 	} else {
-		return AudioFile{}, fmt.Errorf("invalid file type: %s", fileName)
+		return File{}, fmt.Errorf("invalid file type: %s", fileName)
 	}
 
-	return AudioFile{
+	return File{
 		Encoding: encoding,
 		Data:     toBase64(fileContents),
 	}, nil

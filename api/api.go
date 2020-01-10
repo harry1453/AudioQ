@@ -43,23 +43,14 @@ func sendError(writer http.ResponseWriter, err error) {
 	json.NewEncoder(writer).Encode(CommandResponse{false, err.Error()})
 }
 
-func checkProject(writer http.ResponseWriter) bool {
-	if project.Instance != nil {
-		return true
-	} else {
-		writer.WriteHeader(http.StatusNotFound)
-		return false
-	}
-}
-
 func getProject(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
-		json.NewEncoder(writer).Encode(project.Instance.GetInfo())
+	if true {
+		json.NewEncoder(writer).Encode(project.GetInfo())
 	}
 }
 
 func addCue(writer http.ResponseWriter, request *http.Request) {
-	if project.Instance != nil {
+	if true {
 		if err := request.ParseMultipartForm(32 << 20); err != nil {
 			sendError(writer, err)
 			return
@@ -69,7 +60,7 @@ func addCue(writer http.ResponseWriter, request *http.Request) {
 			sendError(writer, err)
 			return
 		}
-		if err := project.Instance.AddCue(request.FormValue("cueName"), header.Filename, file); err != nil {
+		if err := project.AddCue(request.FormValue("cueName"), header.Filename, file); err != nil {
 			sendError(writer, err)
 			return
 		}
@@ -78,13 +69,13 @@ func addCue(writer http.ResponseWriter, request *http.Request) {
 }
 
 func removeCue(writer http.ResponseWriter, request *http.Request) {
-	if project.Instance != nil {
+	if true {
 		cueNumber, err := strconv.Atoi(mux.Vars(request)["cueNumber"])
 		if err != nil {
 			sendError(writer, err)
 			return
 		}
-		if err := project.Instance.RemoveCue(cueNumber); err != nil {
+		if err := project.RemoveCue(cueNumber); err != nil {
 			sendError(writer, err)
 		} else {
 			sendOK(writer)
@@ -93,14 +84,14 @@ func removeCue(writer http.ResponseWriter, request *http.Request) {
 }
 
 func renameCue(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
+	if true {
 		vars := mux.Vars(request)
 		cueNumber, err := strconv.Atoi(vars["cueNumber"])
 		if err != nil {
 			sendError(writer, err)
 			return
 		}
-		if err := project.Instance.RenameCue(cueNumber, vars["cueName"]); err != nil {
+		if err := project.RenameCue(cueNumber, vars["cueName"]); err != nil {
 			sendError(writer, err)
 		} else {
 			sendOK(writer)
@@ -109,7 +100,7 @@ func renameCue(writer http.ResponseWriter, request *http.Request) {
 }
 
 func moveCue(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
+	if true {
 		vars := mux.Vars(request)
 		from, err := strconv.Atoi(vars["from"])
 		if err != nil {
@@ -121,7 +112,7 @@ func moveCue(writer http.ResponseWriter, request *http.Request) {
 			sendError(writer, err)
 			return
 		}
-		if err := project.Instance.MoveCue(from, to); err != nil {
+		if err := project.MoveCue(from, to); err != nil {
 			sendError(writer, err)
 		} else {
 			sendOK(writer)
@@ -130,8 +121,8 @@ func moveCue(writer http.ResponseWriter, request *http.Request) {
 }
 
 func playNext(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
-		if err := project.Instance.PlayNext(); err != nil {
+	if true {
+		if err := project.PlayNext(); err != nil {
 			sendError(writer, err)
 		} else {
 			sendOK(writer)
@@ -140,11 +131,11 @@ func playNext(writer http.ResponseWriter, request *http.Request) {
 }
 
 func jumpTo(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
+	if true {
 		if cueNumber, err := strconv.Atoi(mux.Vars(request)["cueNumber"]); err != nil {
 			sendError(writer, err)
 		} else {
-			if err := project.Instance.JumpTo(cueNumber); err != nil {
+			if err := project.JumpTo(cueNumber); err != nil {
 				sendError(writer, err)
 			} else {
 				sendOK(writer)
@@ -154,21 +145,21 @@ func jumpTo(writer http.ResponseWriter, request *http.Request) {
 }
 
 func stopPlaying(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
-		project.Instance.StopPlaying()
+	if true {
+		project.StopPlaying()
 		sendOK(writer)
 	}
 }
 
 func updateProjectName(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
-		project.Instance.SetName(mux.Vars(request)["name"])
+	if true {
+		project.SetName(mux.Vars(request)["name"])
 		sendOK(writer)
 	}
 }
 
 func updateProjectSettings(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
+	if true {
 		bufferSize, err := strconv.Atoi(request.FormValue("BufferSize"))
 		if err != nil {
 			sendError(writer, err)
@@ -177,7 +168,7 @@ func updateProjectSettings(writer http.ResponseWriter, request *http.Request) {
 		if bufferSize < 0 {
 			sendError(writer, fmt.Errorf("buffer size cannot be less than 0: %d", bufferSize))
 		}
-		project.Instance.SetSettings(project.Settings{
+		project.SetSettings(project.Settings{
 			BufferSize: uint(bufferSize),
 		})
 		sendOK(writer)
@@ -185,7 +176,7 @@ func updateProjectSettings(writer http.ResponseWriter, request *http.Request) {
 }
 
 func loadProject(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
+	if true {
 		if err := request.ParseMultipartForm(32 << 20); err != nil {
 			sendError(writer, err)
 			return
@@ -195,26 +186,19 @@ func loadProject(writer http.ResponseWriter, request *http.Request) {
 			sendError(writer, err)
 			return
 		}
-		newProject := new(project.Project)
-		if err := json.NewDecoder(file).Decode(newProject); err != nil {
+		if err := project.LoadProject(file); err != nil {
 			sendError(writer, err)
 			return
 		}
-		if err := newProject.Init(); err != nil {
-			sendError(writer, err)
-			return
-		}
-		project.Instance.Close()
-		project.Instance = newProject
 		sendOK(writer)
 	}
 }
 
 func saveProject(writer http.ResponseWriter, request *http.Request) {
-	if checkProject(writer) {
-		writer.Header().Set("Content-Disposition", "attachment; filename="+project.Instance.GetName()+".audioq")
+	if true {
+		writer.Header().Set("Content-Disposition", "attachment; filename="+project.GetName()+".audioq")
 		writer.Header().Set("Content-Type", request.Header.Get("Content-Type"))
-		if err := json.NewEncoder(writer).Encode(*project.Instance); err != nil {
+		if err := project.SaveProject(writer); err != nil {
 			sendError(writer, err)
 			return
 		}

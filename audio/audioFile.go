@@ -6,6 +6,7 @@ import (
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/flac"
 	"github.com/faiface/beep/mp3"
+	"github.com/faiface/beep/vorbis"
 	"github.com/faiface/beep/wav"
 	"io"
 	"io/ioutil"
@@ -20,12 +21,12 @@ const (
 	VORBIS
 )
 
-type AudioFile struct {
+type File struct {
 	Encoding AudioEncoding
 	Data     string
 }
 
-func (file *AudioFile) Decode() (Playable, error) {
+func (file *File) Decode() (Playable, error) {
 	data, err := fromBase64(file.Data)
 	if err != nil {
 		return Playable{}, err
@@ -43,7 +44,7 @@ func (file *AudioFile) Decode() (Playable, error) {
 		decode = flac.Decode
 		break
 	case VORBIS:
-		decode = flac.Decode
+		decode = vorbis.Decode
 		break
 	default:
 		return Playable{}, fmt.Errorf("invalid encoding: %d", file.Encoding)
