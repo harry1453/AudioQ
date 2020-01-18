@@ -52,15 +52,14 @@ func Initialize() {
 						Layout: VBox{},
 						Children: []Widget{
 							TableView{
-								AssignTo:         &cueTable,
+								AssignTo: &cueTable,
+								MinSize: Size{
+									Width:  0,
+									Height: 250,
+								},
 								AlternatingRowBG: true,
 								CheckBoxes:       true,
 								ColumnsOrderable: true,
-								MultiSelection:   true,
-								MaxSize: Size{
-									Width:  1000,
-									Height: 1000,
-								},
 								Columns: []TableViewColumn{
 									{Title: "#"},
 									{Title: "Sel"},
@@ -91,12 +90,7 @@ func Initialize() {
 									PushButton{
 										Text: "Delete",
 										OnClicked: func() {
-											selected, err := getFirstSelected(cueTable)
-											if err != nil {
-												fmt.Println("Error", err)
-												return
-											}
-											if err := project.RemoveCue(selected); err != nil {
+											if err := project.RemoveCue(cueTable.CurrentIndex()); err != nil {
 												fmt.Println("Error", err)
 												return
 											}
@@ -105,11 +99,7 @@ func Initialize() {
 									PushButton{
 										Text: "Move",
 										OnClicked: func() {
-											from, err := getFirstSelected(cueTable)
-											if err != nil {
-												fmt.Println("Error", err)
-												return
-											}
+											from := cueTable.CurrentIndex()
 											toString, err := prompt(window, "Index To?")
 											if err != nil || toString == "" {
 												fmt.Println("Error", err)
@@ -197,7 +187,8 @@ func Initialize() {
 								Children: []Widget{
 									TextLabel{Text: "Cue Name:"},
 									TextEdit{
-										AssignTo: &cueName,
+										AssignTo:      &cueName,
+										CompactHeight: true,
 									},
 									PushButton{
 										Text: "Add Cue",

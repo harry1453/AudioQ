@@ -8,12 +8,12 @@ require (
 	github.com/hajimehoshi/oto v0.2.1 // indirect
 	github.com/harry1453/go-common-file-dialog v0.0.0-20191101134429-1e8906a6ee00
 	github.com/jfreymuth/oggvorbis v1.0.1 // indirect
-	github.com/lxn/walk v0.0.0-20191031165957-7370661788f6
-	github.com/lxn/win v0.0.0-20191024121223-cc00c7492fe1 // indirect
+	github.com/lxn/walk v0.0.0-20191128110447-55ccb3a9f5c1
+	github.com/lxn/win v0.0.0-20191128105842-2da648fda5b4 // indirect
 	github.com/mewkiz/flac v1.0.5 // indirect
 	github.com/pkg/errors v0.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf
-	golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c // indirect
+	golang.org/x/sys v0.0.0-20200117145432-59e60aa80a0c // indirect
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 )
 

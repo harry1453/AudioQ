@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"fmt"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 )
@@ -27,15 +26,6 @@ func setting(name string, onUpdate func(string), newValueChannel <-chan string) 
 				},
 			},
 		},
-	}
-}
-
-func getFirstSelected(table *walk.TableView) (int, error) {
-	selected := table.SelectedIndexes()
-	if selected == nil || len(selected) == 0 {
-		return 0, fmt.Errorf("nothing selected")
-	} else {
-		return selected[0], nil
 	}
 }
 
