@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func Initialize() {
@@ -40,6 +41,7 @@ func Initialize() {
 		Title:    "AudioQ " + constants.VERSION,
 		Name:     "AudioQ " + constants.VERSION,
 		Layout:   HBox{Spacing: 5},
+		OnKeyUp:  handleKeystroke,
 		Size: Size{
 			Width:  1000,
 			Height: 400,
@@ -200,6 +202,9 @@ func Initialize() {
 													},
 												},
 											})
+											if !strings.HasPrefix(fileName, ".audioq") {
+												fileName = fileName + ".audioq"
+											}
 											if err != nil {
 												handleError(window, err)
 												return

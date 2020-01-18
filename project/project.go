@@ -246,6 +246,22 @@ func playNext() error {
 	}
 }
 
+func ForwardsOne() error {
+	newCue := int(CurrentCue + 1)
+	if newCue == len(Cues) {
+		newCue = 0
+	}
+	return JumpTo(newCue)
+}
+
+func BackwardsOne() error {
+	newCue := int(CurrentCue - 1)
+	if newCue <= 0 {
+		newCue = len(Cues) - 1
+	}
+	return JumpTo(newCue)
+}
+
 func JumpTo(cueNumber int) error {
 	if !IsCueNumberInRange(cueNumber) {
 		return fmt.Errorf("cue number outside of range of cues: %d", cueNumber)
