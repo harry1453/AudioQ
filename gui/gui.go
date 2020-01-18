@@ -39,7 +39,7 @@ func Initialize() {
 		AssignTo: &window,
 		Title:    "AudioQ " + constants.VERSION,
 		Name:     "AudioQ " + constants.VERSION,
-		Layout:   HBox{},
+		Layout:   HBox{Spacing: 5},
 		Size: Size{
 			Width:  1000,
 			Height: 400,
@@ -49,7 +49,7 @@ func Initialize() {
 				Children: []Widget{
 					Composite{
 						Name:   "Control View",
-						Layout: VBox{},
+						Layout: VBox{Spacing: 5},
 						Children: []Widget{
 							TableView{
 								AssignTo: &cueTable,
@@ -71,9 +71,22 @@ func Initialize() {
 								Layout: HBox{Spacing: 5},
 								Children: []Widget{
 									PushButton{
+										Text: "Jump",
+										OnClicked: func() {
+											currentIndex, valid := getCurrentCueIndex(window, cueTable)
+											if valid {
+												if err := project.JumpTo(currentIndex); err != nil {
+													handleError(window, err)
+												}
+											}
+										},
+									},
+									PushButton{
 										Text: "Play",
 										OnClicked: func() {
-											project.PlayNext() // TODO error
+											if err := project.PlayNext(); err != nil {
+												handleError(window, err)
+											}
 										},
 									},
 									PushButton{
@@ -88,31 +101,58 @@ func Initialize() {
 								Layout: HBox{Spacing: 5},
 								Children: []Widget{
 									PushButton{
-										Text: "Delete",
+										Text: "Rename",
 										OnClicked: func() {
-											if err := project.RemoveCue(cueTable.CurrentIndex()); err != nil {
-												fmt.Println("Error", err)
+											newName, err := prompt(window, "New name?")
+											if err != nil {
+												if err != PromptCancelled {
+													handleError(window, err)
+												}
 												return
+											}
+											currentIndex, valid := getCurrentCueIndex(window, cueTable)
+											if valid {
+												if err := project.RenameCue(currentIndex, newName); err != nil {
+													handleError(window, err)
+													return
+												}
 											}
 										},
 									},
 									PushButton{
 										Text: "Move",
 										OnClicked: func() {
-											from := cueTable.CurrentIndex()
+											from, valid := getCurrentCueIndex(window, cueTable)
+											if !valid {
+												return
+											}
 											toString, err := prompt(window, "Index To?")
-											if err != nil || toString == "" {
-												fmt.Println("Error", err)
+											if err != nil {
+												if err != PromptCancelled {
+													handleError(window, err)
+												}
 												return
 											}
 											to, err := strconv.Atoi(toString)
 											if err != nil {
-												fmt.Println("Error", err)
+												handleError(window, err)
 												return
 											}
 											if err := project.MoveCue(from, to); err != nil {
-												fmt.Println("Error", err)
+												handleError(window, err)
 												return
+											}
+										},
+									},
+									PushButton{
+										Text: "Delete",
+										OnClicked: func() {
+											currentIndex, valid := getCurrentCueIndex(window, cueTable)
+											if valid {
+												if err := project.RemoveCue(currentIndex); err != nil {
+													handleError(window, err)
+													return
+												}
 											}
 										},
 									},
@@ -122,7 +162,7 @@ func Initialize() {
 					},
 					Composite{
 						Name:   "Project View",
-						Layout: VBox{},
+						Layout: VBox{Spacing: 5},
 						Children: []Widget{
 							Composite{
 								Layout: HBox{Spacing: 5},
@@ -140,11 +180,11 @@ func Initialize() {
 												},
 											})
 											if err != nil {
-												log.Println("Error showing open file dialog:", err)
+												handleError(window, err)
 												return
 											}
 											if err := project.LoadProjectFile(fileName); err != nil {
-												log.Println("Error loading file:", err)
+												handleError(window, err)
 											}
 										},
 									},
@@ -161,11 +201,11 @@ func Initialize() {
 												},
 											})
 											if err != nil {
-												log.Println("Error showing open file dialog:", err)
+												handleError(window, err)
 												return
 											}
 											if err := project.SaveProjectFile(fileName); err != nil {
-												log.Println("Error saving file:", err)
+												handleError(window, err)
 											}
 										},
 									},
@@ -177,7 +217,7 @@ func Initialize() {
 							setting("Buffer Size", func(newBufferSize string) {
 								n, err := strconv.Atoi(newBufferSize)
 								if err != nil {
-									log.Println("Failed to parse buffer size:", newBufferSize, err)
+									handleError(window, fmt.Errorf("failed to parse buffer size: %s, %s", newBufferSize, err))
 									return
 								}
 								project.SetSettings(project.Settings{BufferSize: uint(n)})
@@ -203,16 +243,16 @@ func Initialize() {
 												},
 											})
 											if err != nil {
-												log.Println("Error showing open file dialog:", err)
+												handleError(window, err)
 												return
 											}
 											file, err := os.Open(fileName)
 											if err != nil {
-												log.Println("Error opening file:", err)
+												handleError(window, err)
 												return
 											}
 											if err := project.AddCue(cueName.Text(), fileName, file); err != nil {
-												log.Println("Error adding cue:", err)
+												handleError(window, err)
 												return
 											}
 										},
@@ -228,4 +268,5 @@ func Initialize() {
 	if err != nil {
 		log.Println("GUI Error:", exit, err)
 	}
+	os.Exit(0)
 }

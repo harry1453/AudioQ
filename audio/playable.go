@@ -16,7 +16,6 @@ type Playable struct {
 }
 
 func (playable *Playable) Initialize(bufferSizeMs uint) error {
-	fmt.Println("init")
 	if !playable.isInitialized {
 		if bufferSizeMs == 0 {
 			bufferSizeMs = 100
@@ -39,7 +38,6 @@ func (playable *Playable) Play(cueFinishedChannel chan bool, bufferSizeMs uint) 
 		}
 	}
 
-	fmt.Println("play")
 	speaker.Play(beep.Seq(playable.stream, beep.Callback(func() {
 		playable.Close()
 		cueFinishedChannel <- true
