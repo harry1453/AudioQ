@@ -41,7 +41,6 @@ func Initialize() {
 		Title:    "AudioQ " + constants.VERSION,
 		Name:     "AudioQ " + constants.VERSION,
 		Layout:   HBox{Spacing: 5},
-		OnKeyUp:  handleKeystroke,
 		Size: Size{
 			Width:  1000,
 			Height: 400,
@@ -155,6 +154,14 @@ func Initialize() {
 													handleError(window, err)
 													return
 												}
+											}
+										},
+									},
+									PushButton{
+										Text: "Keyboard Control",
+										OnClicked: func() {
+											if err := showKeyboardControlWindow(window); err != nil {
+												handleError(window, err)
 											}
 										},
 									},
