@@ -26,7 +26,10 @@ func setting(name string, onUpdate func(string), newValueChannel <-chan string) 
 			TextEdit{
 				AssignTo:      &textEdit,
 				CompactHeight: true,
-				OnTextChanged: func() {
+			},
+			PushButton{
+				Text: "Apply",
+				OnClicked: func() {
 					onUpdate(textEdit.Text())
 				},
 			},

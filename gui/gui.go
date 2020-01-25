@@ -202,7 +202,7 @@ func Initialize() {
 													},
 												},
 											})
-											if !strings.HasPrefix(fileName, ".audioq") {
+											if !strings.HasSuffix(fileName, ".audioq") {
 												fileName = fileName + ".audioq"
 											}
 											if err != nil {
@@ -268,6 +268,19 @@ func Initialize() {
 					},
 				},
 			},
+		},
+		OnDropFiles: func(fileNames []string) {
+			for index, fileName := range fileNames {
+				indexString := strconv.Itoa(index + 1)
+				file, err := os.Open(fileName)
+				if err != nil {
+					handleError(window, err)
+					continue
+				}
+				if err := project.AddCue("Cue "+indexString, fileName, file); err != nil {
+					handleError(window, err)
+				}
+			}
 		},
 	}.Run()
 	if err != nil {

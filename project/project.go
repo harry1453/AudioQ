@@ -102,10 +102,10 @@ func GetName() string {
 	return name
 }
 
-func SetName(name string) {
-	name = name
+func SetName(newName string) {
+	name = newName
 	for _, listener := range nameUpdateListeners {
-		listener <- name
+		listener <- newName
 	}
 }
 
