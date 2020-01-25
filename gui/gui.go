@@ -26,7 +26,6 @@ func Initialize() {
 		}
 	}()
 
-	var cueName *walk.TextEdit
 	var cueTable *walk.TableView
 	cueTableModel := NewCueModel()
 
@@ -98,6 +97,14 @@ func Initialize() {
 											project.StopPlaying()
 										},
 									},
+									PushButton{
+										Text: "Keyboard Control",
+										OnClicked: func() {
+											if err := showKeyboardControlWindow(); err != nil {
+												handleError(window, err)
+											}
+										},
+									},
 								},
 							},
 							Composite{
@@ -161,10 +168,36 @@ func Initialize() {
 										},
 									},
 									PushButton{
-										Text: "Keyboard Control",
+										Text: "Add Cue",
 										OnClicked: func() {
-											if err := showKeyboardControlWindow(); err != nil {
+											cueName, err := prompt(window, "Cue Name?")
+											if err != nil {
+												if err != PromptCancelled {
+													handleError(window, err)
+												}
+												return
+											}
+											fileName, err := cfdutil.ShowOpenFileDialog(cfd.DialogConfig{
+												Title: "Open Cue",
+												FileFilters: []cfd.FileFilter{
+													{
+														DisplayName: "Audio Files (*.wav, *.flac, *.mp3, *.ogg",
+														Pattern:     "*.wav;*.flac;*.mp3;*.ogg",
+													},
+												},
+											})
+											if err != nil {
 												handleError(window, err)
+												return
+											}
+											file, err := os.Open(fileName)
+											if err != nil {
+												handleError(window, err)
+												return
+											}
+											if err := project.AddCue(cueName, fileName, file); err != nil {
+												handleError(window, err)
+												return
 											}
 										},
 									},
@@ -238,44 +271,6 @@ func Initialize() {
 								}
 								project.SetSettings(project.Settings{BufferSize: uint(n)})
 							}, settingsStringUpdateChannel),
-							Composite{
-								Alignment: AlignHCenterVCenter,
-								Layout:    HBox{Alignment: AlignHCenterVCenter, Spacing: 5},
-								Children: []Widget{
-									TextLabel{Text: "Cue Name:"},
-									TextEdit{
-										AssignTo:      &cueName,
-										CompactHeight: true,
-									},
-									PushButton{
-										Text: "Add Cue",
-										OnClicked: func() {
-											fileName, err := cfdutil.ShowOpenFileDialog(cfd.DialogConfig{
-												Title: "Open Cue",
-												FileFilters: []cfd.FileFilter{
-													{
-														DisplayName: "Audio Files (*.wav, *.flac, *.mp3, *.ogg",
-														Pattern:     "*.wav;*.flac;*.mp3;*.ogg",
-													},
-												},
-											})
-											if err != nil {
-												handleError(window, err)
-												return
-											}
-											file, err := os.Open(fileName)
-											if err != nil {
-												handleError(window, err)
-												return
-											}
-											if err := project.AddCue(cueName.Text(), fileName, file); err != nil {
-												handleError(window, err)
-												return
-											}
-										},
-									},
-								},
-							},
 						},
 					},
 				},
