@@ -7,19 +7,25 @@ import (
 	. "github.com/lxn/walk/declarative"
 )
 
-func showKeyboardControlWindow(owner walk.Form) error {
-	_, err := Dialog{
-		Title:     "Keyboard Control",
-		Name:      "Keyboard Control",
+func showKeyboardControlWindow() error {
+	_, err := MainWindow{
+		Title:      "Keyboard Control",
+		Name:       "Keyboard Control",
+		Persistent: true,
+		Size: Size{
+			Width:  256,
+			Height: 144,
+		},
 		OnKeyDown: handleKeystroke,
-		Layout:    Grid{},
+		Layout:    VBox{Alignment: AlignHCenterVCenter},
 		Children: []Widget{
 			TextLabel{
+				Alignment: AlignHCenterVCenter,
 				Text:      "Keyboard Control",
 				OnKeyDown: handleKeystroke, // To be sure, in case this somehow gains focus
 			},
 		},
-	}.Run(owner)
+	}.Run()
 	return err
 }
 

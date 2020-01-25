@@ -40,7 +40,7 @@ func Initialize() {
 		AssignTo: &window,
 		Title:    "AudioQ " + constants.VERSION,
 		Name:     "AudioQ " + constants.VERSION,
-		Layout:   HBox{Spacing: 5},
+		Layout:   HBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 		Size: Size{
 			Width:  1000,
 			Height: 400,
@@ -49,14 +49,15 @@ func Initialize() {
 			HSplitter{
 				Children: []Widget{
 					Composite{
-						Name:   "Control View",
-						Layout: VBox{Spacing: 5},
+						Alignment: AlignHCenterVCenter,
+						Name:      "Control View",
+						Layout:    VBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 						Children: []Widget{
 							TableView{
 								AssignTo: &cueTable,
 								MinSize: Size{
 									Width:  0,
-									Height: 250,
+									Height: 350,
 								},
 								AlternatingRowBG: true,
 								CheckBoxes:       true,
@@ -69,7 +70,8 @@ func Initialize() {
 								Model: cueTableModel,
 							},
 							Composite{
-								Layout: HBox{Spacing: 5},
+								Alignment: AlignHCenterVCenter,
+								Layout:    HBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 								Children: []Widget{
 									PushButton{
 										Text: "Jump",
@@ -99,7 +101,8 @@ func Initialize() {
 								},
 							},
 							Composite{
-								Layout: HBox{Spacing: 5},
+								Alignment: AlignHCenterVCenter,
+								Layout:    HBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 								Children: []Widget{
 									PushButton{
 										Text: "Rename",
@@ -160,7 +163,7 @@ func Initialize() {
 									PushButton{
 										Text: "Keyboard Control",
 										OnClicked: func() {
-											if err := showKeyboardControlWindow(window); err != nil {
+											if err := showKeyboardControlWindow(); err != nil {
 												handleError(window, err)
 											}
 										},
@@ -170,11 +173,12 @@ func Initialize() {
 						},
 					},
 					Composite{
-						Name:   "Project View",
-						Layout: VBox{Spacing: 5},
+						Name:      "Project View",
+						Alignment: AlignHCenterVCenter,
+						Layout:    VBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 						Children: []Widget{
 							Composite{
-								Layout: HBox{Spacing: 5},
+								Layout: HBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 								Children: []Widget{
 									PushButton{
 										Text: "Open",
@@ -235,7 +239,8 @@ func Initialize() {
 								project.SetSettings(project.Settings{BufferSize: uint(n)})
 							}, settingsStringUpdateChannel),
 							Composite{
-								Layout: HBox{Spacing: 5},
+								Alignment: AlignHCenterVCenter,
+								Layout:    HBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 								Children: []Widget{
 									TextLabel{Text: "Cue Name:"},
 									TextEdit{

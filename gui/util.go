@@ -18,7 +18,7 @@ func setting(name string, onUpdate func(string), newValueChannel <-chan string) 
 		}
 	}()
 	return Composite{
-		Layout: HBox{Spacing: 5},
+		Layout: HBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 		Children: []Widget{
 			TextLabel{
 				Text: name + ": ",
@@ -43,7 +43,7 @@ func messageBox(owner walk.Form, message string) error {
 		AssignTo: &dialog,
 		Name:     "Message",
 		Title:    "Message",
-		Layout:   VBox{Spacing: 5},
+		Layout:   VBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 		Children: []Widget{
 			TextLabel{
 				Text: message,
@@ -86,7 +86,7 @@ func prompt(owner walk.Form, prompt string) (string, error) {
 		AssignTo: &dialog,
 		Name:     "Prompt",
 		Title:    "Prompt",
-		Layout:   VBox{Spacing: 5},
+		Layout:   VBox{Alignment: AlignHCenterVCenter, Spacing: 5},
 		Children: []Widget{
 			TextLabel{
 				Text: prompt,
