@@ -256,7 +256,7 @@ func ForwardsOne() error {
 
 func BackwardsOne() error {
 	newCue := int(CurrentCue - 1)
-	if newCue <= 0 {
+	if newCue < 0 {
 		newCue = len(Cues) - 1
 	}
 	return JumpTo(newCue)

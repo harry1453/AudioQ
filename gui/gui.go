@@ -10,6 +10,7 @@ import (
 	. "github.com/lxn/walk/declarative"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -269,6 +270,7 @@ func Initialize() {
 			},
 		},
 		OnDropFiles: func(fileNames []string) {
+			sort.Strings(fileNames)
 			for index, fileName := range fileNames {
 				indexString := strconv.Itoa(index + 1)
 				file, err := os.Open(fileName)

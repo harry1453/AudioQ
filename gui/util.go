@@ -64,7 +64,7 @@ func messageBox(owner walk.Form, message string) error {
 
 func getCurrentCueIndex(owner walk.Form, table *walk.TableView) (int, bool) {
 	currentCue := table.CurrentIndex()
-	if currentCue <= 0 {
+	if currentCue < 0 {
 		handleError(owner, fmt.Errorf("no cue selected"))
 		return currentCue, false
 	}
